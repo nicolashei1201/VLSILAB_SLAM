@@ -1,0 +1,9 @@
+build/
+deps/
+.project
+.cproject
+*.user
+*.ply
+
+*/build
+*/*/build

@@ -1,0 +1,9 @@
+build/
+.vscode/
+*~
+lib/
+*.swp
+*.swo
+compile_commands.json
+vo_results/
+settings/TUM/tum_settings/

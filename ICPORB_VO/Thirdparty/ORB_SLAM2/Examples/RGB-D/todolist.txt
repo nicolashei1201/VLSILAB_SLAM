@@ -1,0 +1,10 @@
+
+1. benchmarking
+2. fusion (x)
+3. icp (x)
+4. vo (x)
+5. setting file(x)
+6. evaluation scripts
+
+
+7. integrating Elasticfusion

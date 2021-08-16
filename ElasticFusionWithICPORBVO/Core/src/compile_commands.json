@@ -1,0 +1,97 @@
+[
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Deformation.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Deformation.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Deformation.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/ElasticFusion.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/ElasticFusion.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/ElasticFusion.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Ferns.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Ferns.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Ferns.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/GPUTexture.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/GPUTexture.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/GPUTexture.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/GlobalModel.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/GlobalModel.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/GlobalModel.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/IndexMap.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/IndexMap.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/IndexMap.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Utils/CholeskyDecomp.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/CholeskyDecomp.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/CholeskyDecomp.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Utils/DeformationGraph.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/DeformationGraph.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/DeformationGraph.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Utils/Intrinsics.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/Intrinsics.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/Intrinsics.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Utils/Parse.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/Parse.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/Parse.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Utils/RGBDOdometry.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/RGBDOdometry.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/RGBDOdometry.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Utils/Resolution.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/Resolution.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/Resolution.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Utils/WindowsExtras.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/WindowsExtras.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Utils/WindowsExtras.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Shaders/ComputePack.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders/ComputePack.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders/ComputePack.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Shaders/FeedbackBuffer.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders/FeedbackBuffer.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders/FeedbackBuffer.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Shaders/FillIn.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders/FillIn.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders/FillIn.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Shaders/Resize.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders/Resize.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders/Resize.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Shaders/Vertex.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders/Vertex.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders/Vertex.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src",
+  "command": "/usr/bin/clang++-9  -Defusion_EXPORTS -I/home/jyli/projects/ICPORB_VO -I/home/jyli/projects/ICPORB_VO/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/g2o/include -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ICPORB_VO/Thirdparty/Eigen/eigen3 -I/usr/include/suitesparse -isystem /home/jyli/packages/installation/OpenCV-4.1.1/include/opencv4  -O3 -msse2 -msse3 -Wall -std=c++11 -DSHADER_DIR=/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Shaders -O3 -DNDEBUG -fPIC   -o CMakeFiles/efusion.dir/Cuda/containers/device_memory.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Cuda/containers/device_memory.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src/Cuda/containers/device_memory.cpp"
+}
+]

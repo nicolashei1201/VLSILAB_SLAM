@@ -1,0 +1,37 @@
+[
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/build",
+  "command": "/usr/bin/c++  -Dlinux=1 -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src -I/usr/include/openni2  -O3 -msse2 -msse3 -Wall -std=c++11   -o CMakeFiles/ElasticFusion.dir/Main.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Main.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Main.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/build",
+  "command": "/usr/bin/c++  -Dlinux=1 -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src -I/usr/include/openni2  -O3 -msse2 -msse3 -Wall -std=c++11   -o CMakeFiles/ElasticFusion.dir/MainController.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/MainController.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/MainController.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/build",
+  "command": "/usr/bin/c++  -Dlinux=1 -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src -I/usr/include/openni2  -O3 -msse2 -msse3 -Wall -std=c++11   -o CMakeFiles/ElasticFusion.dir/Tools/GroundTruthOdometry.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Tools/GroundTruthOdometry.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Tools/GroundTruthOdometry.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/build",
+  "command": "/usr/bin/c++  -Dlinux=1 -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src -I/usr/include/openni2  -O3 -msse2 -msse3 -Wall -std=c++11   -o CMakeFiles/ElasticFusion.dir/Tools/LiveLogReader.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Tools/LiveLogReader.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Tools/LiveLogReader.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/build",
+  "command": "/usr/bin/c++  -Dlinux=1 -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src -I/usr/include/openni2  -O3 -msse2 -msse3 -Wall -std=c++11   -o CMakeFiles/ElasticFusion.dir/Tools/OpenNI2Interface.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Tools/OpenNI2Interface.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Tools/OpenNI2Interface.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/build",
+  "command": "/usr/bin/c++  -Dlinux=1 -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src -I/usr/include/openni2  -O3 -msse2 -msse3 -Wall -std=c++11   -o CMakeFiles/ElasticFusion.dir/Tools/RawLogReader.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Tools/RawLogReader.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Tools/RawLogReader.cpp"
+},
+{
+  "directory": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/build",
+  "command": "/usr/bin/c++  -Dlinux=1 -isystem /home/jyli/packages/Pangolin/include -isystem /home/jyli/packages/Pangolin/build/src/include -isystem /usr/include/eigen3 -I/usr/local/cuda/include -I/home/jyli/projects/ElasticFusionWithICPORBVO/Core/src -I/usr/include/openni2  -O3 -msse2 -msse3 -Wall -std=c++11   -o CMakeFiles/ElasticFusion.dir/Tools/RealSenseInterface.cpp.o -c /home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Tools/RealSenseInterface.cpp",
+  "file": "/home/jyli/projects/ElasticFusionWithICPORBVO/GUI/src/Tools/RealSenseInterface.cpp"
+}
+]

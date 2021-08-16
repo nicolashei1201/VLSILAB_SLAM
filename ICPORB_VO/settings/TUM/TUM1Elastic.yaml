@@ -1,0 +1,130 @@
+%YAML:1.0
+
+#--------------------------------------------------------------------------------------------
+
+# Camera Parameters. Adjust them!
+
+#--------------------------------------------------------------------------------------------
+
+# Camera calibration and distortion parameters (OpenCV) 
+Camera.fx: 517.306408  # Camera.fx: 517.306408 # Camera.fx: 520.908620
+Camera.fy: 516.469215  # Camera.fy: 516.469215 # Camera.fy: 521.007327
+Camera.cx: 318.643040  # Camera.cx: 318.643040 # Camera.cx: 325.141442
+Camera.cy: 255.313989  # Camera.cy: 255.313989 # Camera.cy: 249.701764
+                                               #
+Camera.k1: 0.262383                            # Camera.k1: 0.231222
+Camera.k2: -0.953104                           # Camera.k2: -0.784899
+Camera.p1: -0.005358                           # Camera.p1: -0.003257
+Camera.p2: 0.002628                            # Camera.p2: -0.000105
+Camera.k3: 1.163314                            # Camera.k3: 0.917205
+
+Camera.width: 640
+Camera.height: 480
+
+# Camera frames per second 
+Camera.fps: 30.0
+
+# IR projector baseline times fx (aprox.)
+Camera.bf: 40.0
+
+# Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
+Camera.RGB: 1
+
+# Close/Far threshold. Baseline times.
+ThDepth: 40.0
+
+# Deptmap values factor 
+DepthMapFactor: 1000.0
+
+#--------------------------------------------------------------------------------------------
+# ORB Parameters
+#--------------------------------------------------------------------------------------------
+
+# ORB Extractor: Number of features per image
+ORBextractor.nFeatures: 1000
+
+# ORB Extractor: Scale factor between levels in the scale pyramid 	
+ORBextractor.scaleFactor: 1.2
+
+# ORB Extractor: Number of levels in the scale pyramid	
+ORBextractor.nLevels: 8
+
+# ORB Extractor: Fast threshold
+# Image is divided in a grid. At each cell FAST are extracted imposing a minimum response.
+# Firstly we impose iniThFAST. If no corners are detected we impose a lower value minThFAST
+# You can lower these values if your images have low contrast			
+ORBextractor.iniThFAST: 20
+ORBextractor.minThFAST: 7
+
+#--------------------------------------------------------------------------------------------
+# ORB Viewer Parameters
+#--------------------------------------------------------------------------------------------
+Viewer.Enable: 0
+Viewer.KeyFrameSize: 0.05
+Viewer.KeyFrameLineWidth: 1
+Viewer.GraphLineWidth: 0.9
+Viewer.PointSize:2
+Viewer.CameraSize: 0.08
+Viewer.CameraLineWidth: 3
+Viewer.ViewpointX: 0
+Viewer.ViewpointY: -0.7
+Viewer.ViewpointZ: -1.8
+Viewer.ViewpointF: 500
+
+
+#--------------------------------------------------------------------------------------------
+
+# Visual odometry Parameters. Adjust them!
+
+#--------------------------------------------------------------------------------------------
+
+
+VO.keyframe_update_threshold_rot   : 0.00
+VO.keyframe_update_threshold_trans : 0.00
+VO.use_backup                      : 0
+VO.use_prediction                  : 1
+
+#--------------------------------------------------------------------------------------------
+
+# ICP Parameters. Adjust them!
+
+#--------------------------------------------------------------------------------------------
+#
+ICP.icp_converged_threshold_trans :  0.001
+ICP.icp_converged_threshold_rot   :  0.001
+ICP.max_iters                     :  30
+ICP.thresAccSlidingExtent         : 0.025
+
+Sampling.max_depth            : 4.0
+Sampling.min_depth            : 0.4
+Sampling.random_seed          : 1
+Sampling.stride               : 1
+Sampling.edge_threshold       : 0.0254
+Sampling.normal_step          : 2
+#if range is 7x7, then the normal range is 3
+Sampling.normal_range         : 3
+Sampling.number_of_sampling   : 1000
+
+#if range is 11x11, then the normal range is 5
+DataAssociating.search_step                 : 3
+DataAssociating.search_range                : 5
+DataAssociating.dynamic_threshold_rejection : 0.95
+DataAssociating.fixed_threshold_rejection   : 0.05
+DataAssociating.bound_margin                : 20
+DataAssociating.top_bound                   : 54
+DataAssociating.bottom_bound                : 458
+DataAssociating.left_bound                  : 20
+DataAssociating.right_bound                 : 583
+
+TransformSolver.thresEvalRatio        : 165.7
+
+#--------------------------------------------------------------------------------------------
+
+# MISC Parameters. Adjust them!
+
+#--------------------------------------------------------------------------------------------
+#
+OutputFolder                                : ./
+
+
+VO.orbEdgeLength :3
