@@ -30,7 +30,7 @@ out vec4 vData;
 
 void main() 
 {
-    if(id[0] % 1000 == 0)
+    if(id[0] % 5000 == 0)
     {
             vData.xyz = vPosition0[0].xyz;
             vData.w = vColorTime0[0].z;
