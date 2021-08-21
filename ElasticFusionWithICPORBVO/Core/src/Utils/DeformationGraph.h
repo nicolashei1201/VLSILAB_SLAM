@@ -114,7 +114,6 @@ class DeformationGraph
         //From paper
         const double wRot;
         const double wReg;
-        const double wMani;
         const double wCon;
 
         static const int numVariables = 12;
