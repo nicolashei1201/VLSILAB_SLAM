@@ -24,7 +24,6 @@ DeformationGraph::DeformationGraph(int k, std::vector<Eigen::Vector3f> * sourceV
    initialised(false),
    wRot(1),
    wReg(10),
-   wMani(10),
    wCon(100),
    sourceVertices(sourceVertices),
    graphCloud(new std::vector<Eigen::Vector3f>),
@@ -62,9 +61,9 @@ void DeformationGraph::initialiseGraph(std::vector<Eigen::Vector3f> * customGrap
     sampledGraphTimes.clear();
 
     sampledGraphTimes.insert(sampledGraphTimes.end(), graphTimeMap->begin(), graphTimeMap->end());
-    //std::cout<<"graph cloud size before add: "<<graphCloud->size() << std::endl;
+
     graphCloud->insert(graphCloud->end(), customGraph->begin(), customGraph->end());
-    //std::cout<<"graph cloud size after add: "<<graphCloud->size() << std::endl;
+
     graphNodes.clear();
 
     graph.clear();
@@ -136,7 +135,7 @@ void DeformationGraph::setPosesSeq(std::vector<unsigned long long int> * poseTim
     poseMap.clear();
 
     const unsigned int lookBack = 20;
-    //const unsigned int lookBack = 40;
+
     std::vector<int> pointIdxNKNSearch(k + 1);
     std::vector<float> pointNKNSquaredDistance(k + 1);
 
@@ -512,7 +511,7 @@ bool DeformationGraph::optimiseGraphSparse(float & error, float & meanConsErr, c
 
         errorDiff = error - lastError;
 
-        std::cout << "Iteration " << iter << ": " << error << std::endl;
+//        std::cout << "Iteration " << iter << ": " << error << std::endl;
 
         if(error > lastError || delta.norm() < 1e-2 || error < 1e-3 || fabs(errorDiff) < 1e-5 * error ||
            (iter == 1 && fernMatch && error > 10.0f))
@@ -559,19 +558,19 @@ void DeformationGraph::sparseJacobian(Jacobian & jacobian, const int numRows, co
             rows[lastRow + 4] = new OrderedJacobianRow(3);
             rows[lastRow + 5] = new OrderedJacobianRow(3);
 
-            rows[lastRow]->append(colOffset - backSet, rotation(0, 1));     //b => devide by a 
-            rows[lastRow]->append(colOffset + 1 - backSet, rotation(1, 1)); //e => devide by d 
-            rows[lastRow]->append(colOffset + 2 - backSet, rotation(2, 1)); //h => devide by g 
-            rows[lastRow]->append(colOffset + 3 - backSet, rotation(0, 0)); //a => devide by b
-            rows[lastRow]->append(colOffset + 4 - backSet, rotation(1, 0)); //d => devide by e
-            rows[lastRow]->append(colOffset + 5 - backSet, rotation(2, 0)); //g => devide by h 
+            rows[lastRow]->append(colOffset - backSet, rotation(0, 1));
+            rows[lastRow]->append(colOffset + 1 - backSet, rotation(1, 1));
+            rows[lastRow]->append(colOffset + 2 - backSet, rotation(2, 1));
+            rows[lastRow]->append(colOffset + 3 - backSet, rotation(0, 0));
+            rows[lastRow]->append(colOffset + 4 - backSet, rotation(1, 0));
+            rows[lastRow]->append(colOffset + 5 - backSet, rotation(2, 0));
 
-            rows[lastRow + 1]->append(colOffset - backSet, rotation(0, 2));     //c => devide by a  
-            rows[lastRow + 1]->append(colOffset + 1 - backSet, rotation(1, 2)); //f => devide by d
-            rows[lastRow + 1]->append(colOffset + 2 - backSet, rotation(2, 2)); //i => devide by g
-            rows[lastRow + 1]->append(colOffset + 6 - backSet, rotation(0, 0)); //a => devide by c 
-            rows[lastRow + 1]->append(colOffset + 7 - backSet, rotation(1, 0)); //d => devide by f 
-            rows[lastRow + 1]->append(colOffset + 8 - backSet, rotation(2, 0)); //g => devide by i 
+            rows[lastRow + 1]->append(colOffset - backSet, rotation(0, 2));
+            rows[lastRow + 1]->append(colOffset + 1 - backSet, rotation(1, 2));
+            rows[lastRow + 1]->append(colOffset + 2 - backSet, rotation(2, 2));
+            rows[lastRow + 1]->append(colOffset + 6 - backSet, rotation(0, 0));
+            rows[lastRow + 1]->append(colOffset + 7 - backSet, rotation(1, 0));
+            rows[lastRow + 1]->append(colOffset + 8 - backSet, rotation(2, 0));
 
             rows[lastRow + 2]->append(colOffset + 3 - backSet, rotation(0, 2));
             rows[lastRow + 2]->append(colOffset + 4 - backSet, rotation(1, 2));
@@ -580,17 +579,17 @@ void DeformationGraph::sparseJacobian(Jacobian & jacobian, const int numRows, co
             rows[lastRow + 2]->append(colOffset + 7 - backSet, rotation(1, 1));
             rows[lastRow + 2]->append(colOffset + 8 - backSet, rotation(2, 1));
 
-            rows[lastRow + 3]->append(colOffset - backSet, 2*rotation(0, 0));//a
-            rows[lastRow + 3]->append(colOffset + 1 - backSet, 2*rotation(1, 0));//d
-            rows[lastRow + 3]->append(colOffset + 2 - backSet, 2*rotation(2, 0));//g
+            rows[lastRow + 3]->append(colOffset - backSet, 2*rotation(0, 0));
+            rows[lastRow + 3]->append(colOffset + 1 - backSet, 2*rotation(1, 0));
+            rows[lastRow + 3]->append(colOffset + 2 - backSet, 2*rotation(2, 0));
 
-            rows[lastRow + 4]->append(colOffset + 3 - backSet, 2*rotation(0, 1));//b
-            rows[lastRow + 4]->append(colOffset + 4 - backSet, 2*rotation(1, 1));//e
-            rows[lastRow + 4]->append(colOffset + 5 - backSet, 2*rotation(2, 1));//h
+            rows[lastRow + 4]->append(colOffset + 3 - backSet, 2*rotation(0, 1));
+            rows[lastRow + 4]->append(colOffset + 4 - backSet, 2*rotation(1, 1));
+            rows[lastRow + 4]->append(colOffset + 5 - backSet, 2*rotation(2, 1));
 
-            rows[lastRow + 5]->append(colOffset + 6 - backSet, 2*rotation(0, 2));//c
-            rows[lastRow + 5]->append(colOffset + 7 - backSet, 2*rotation(1, 2));//f
-            rows[lastRow + 5]->append(colOffset + 8 - backSet, 2*rotation(2, 2));//i
+            rows[lastRow + 5]->append(colOffset + 6 - backSet, 2*rotation(0, 2));
+            rows[lastRow + 5]->append(colOffset + 7 - backSet, 2*rotation(1, 2));
+            rows[lastRow + 5]->append(colOffset + 8 - backSet, 2*rotation(2, 2));
 
             lastRow += eRotRows;
         }
@@ -609,7 +608,7 @@ void DeformationGraph::sparseJacobian(Jacobian & jacobian, const int numRows, co
                 rows[lastRow + 1] = new OrderedJacobianRow(5);
                 rows[lastRow + 2] = new OrderedJacobianRow(5);
 
-                Eigen::Vector3f delta = graph.at(graph.at(j)->neighbours.at(n))->position - graph.at(j)->position;//neighbor to center point's vector 
+                Eigen::Vector3f delta = graph.at(graph.at(j)->neighbours.at(n))->position - graph.at(j)->position;
 
                 int colOffsetN = graph.at(graph.at(j)->neighbours.at(n))->id * numVariables;
 
@@ -624,15 +623,15 @@ void DeformationGraph::sparseJacobian(Jacobian & jacobian, const int numRows, co
 
                 if(graph.at(j)->enabled)
                 {
-                    rows[lastRow]->append(colOffset - backSet, delta(0) * sqrt(wReg));      //x => devide by a
-                    rows[lastRow]->append(colOffset + 3 - backSet, delta(1) * sqrt(wReg));  //y => devide by b
-                    rows[lastRow]->append(colOffset + 6 - backSet, delta(2) * sqrt(wReg));  //z => devide by c
-                    rows[lastRow]->append(colOffset + 9 - backSet, 1.0 * sqrt(wReg));       //1 => devide by alpha
+                    rows[lastRow]->append(colOffset - backSet, delta(0) * sqrt(wReg));
+                    rows[lastRow]->append(colOffset + 3 - backSet, delta(1) * sqrt(wReg));
+                    rows[lastRow]->append(colOffset + 6 - backSet, delta(2) * sqrt(wReg));
+                    rows[lastRow]->append(colOffset + 9 - backSet, 1.0 * sqrt(wReg));
 
-                    rows[lastRow + 1]->append(colOffset + 1 - backSet, delta(0) * sqrt(wReg));  //x => devide by d
-                    rows[lastRow + 1]->append(colOffset + 4 - backSet, delta(1) * sqrt(wReg));  //y => devide by e
-                    rows[lastRow + 1]->append(colOffset + 7 - backSet, delta(2) * sqrt(wReg));  //z => devide by f
-                    rows[lastRow + 1]->append(colOffset + 10 - backSet, 1.0 * sqrt(wReg));      //1 => devide by beta
+                    rows[lastRow + 1]->append(colOffset + 1 - backSet, delta(0) * sqrt(wReg));
+                    rows[lastRow + 1]->append(colOffset + 4 - backSet, delta(1) * sqrt(wReg));
+                    rows[lastRow + 1]->append(colOffset + 7 - backSet, delta(2) * sqrt(wReg));
+                    rows[lastRow + 1]->append(colOffset + 10 - backSet, 1.0 * sqrt(wReg));
 
                     rows[lastRow + 2]->append(colOffset + 2 - backSet, delta(0) * sqrt(wReg));
                     rows[lastRow + 2]->append(colOffset + 5 - backSet, delta(1) * sqrt(wReg));
@@ -650,13 +649,14 @@ void DeformationGraph::sparseJacobian(Jacobian & jacobian, const int numRows, co
                 lastRow += eRegRows;
             }
         }
+        
     }
-
-    for(unsigned int j = 0; j < graph.size(); j++)
+    
+    for(unsigned int j = 0; j < graph.size(); j++)//manifold
     {
         int colOffset = graph.at(j)->id * numVariables;
 
-        //manifold
+        
 
         for(unsigned int n = 0; n < graph.at(j)->neighbours.size(); n++)
         {
@@ -674,19 +674,19 @@ void DeformationGraph::sparseJacobian(Jacobian & jacobian, const int numRows, co
 
                 if(graph.at(j)->enabled)
                 {
-                    rows[lastRow]->append(colOffset + 9 - backSet, 1.0 * sqrt(wMani));       //1 => devide by alpha
+                    rows[lastRow]->append(colOffset + 9 - backSet, 1.0 * sqrt(wReg));       //1 => devide by alpha
 
 
-                    rows[lastRow + 1]->append(colOffset + 10 - backSet, 1.0 * sqrt(wMani));  //1 => devide by beta
+                    rows[lastRow + 1]->append(colOffset + 10 - backSet, 1.0 * sqrt(wReg));  //1 => devide by beta
 
 
-                    rows[lastRow + 2]->append(colOffset + 11 - backSet, 1.0 * sqrt(wMani));  //1 => devide by gama
+                    rows[lastRow + 2]->append(colOffset + 11 - backSet, 1.0 * sqrt(wReg));  //1 => devide by gama
                 }
 
                 lastRow += eRegRows;
             }
         }
-    }
+    }//manifold end
 
     for(unsigned int l = 0; l < constraints.size(); l++)
     {
@@ -917,8 +917,7 @@ Eigen::VectorXd DeformationGraph::sparseResidual(const int maxRows)
     {
         for(unsigned int n = 0; n < graph.at(j)->neighbours.size(); n++)
         {
-            //if(graph.at(graph.at(j)->neighbours.at(n))->enabled || graph.at(j)->enabled)
-            if(graph.at(j)->enabled)
+            if(graph.at(graph.at(j)->neighbours.at(n))->enabled || graph.at(j)->enabled)
             {
                 residual.segment(numRows, 3) = (graph.at(j)->rotation * (graph.at(graph.at(j)->neighbours.at(n))->position - graph.at(j)->position) +
                                                                          graph.at(j)->position + graph.at(j)->translation -
@@ -928,20 +927,18 @@ Eigen::VectorXd DeformationGraph::sparseResidual(const int maxRows)
         }
     }
 
-    //manifold
-
-        for(unsigned int j = 0; j < graph.size(); j++)
+    for(unsigned int j = 0; j < graph.size(); j++)//manifold
     {
         for(unsigned int n = 0; n < graph.at(j)->neighbours.size(); n++)
         {
             if(graph.at(graph.at(j)->neighbours.at(n))->enabled || graph.at(j)->enabled)
             {
 
-                residual.segment(numRows, 3) = ((graph.at(j)->translation) -  (graph.at(graph.at(j)->neighbours.at(n))->translation)).cast<double>() * sqrt(wMani);
+                residual.segment(numRows, 3) = ((graph.at(j)->translation) -  (graph.at(graph.at(j)->neighbours.at(n))->translation)).cast<double>() * sqrt(wReg);
                 numRows += eRegRows;
             }
         }
-    }
+    }//manifold end
 
     for(unsigned int l = 0; l < constraints.size(); l++)
     {
