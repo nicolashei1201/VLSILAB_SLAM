@@ -95,8 +95,8 @@ ElasticFusion::ElasticFusion(const int timeDelta,
     useICPORB_VO=true;
     useICPDepthAlone=false;
     icporb_vo = new ICPORB_VO(
-		    "/home/jyli/projects/ICPORB_VO/Thirdparty/ORB_SLAM2/Vocabulary/ORBvoc.txt", 
-		    "/home/jyli/projects/ICPORB_VO/settings/TUM/TUM1Elastic.yaml");
+		    "/home/jjhu/Desktop/hei/jy_code/ICPORB_VO/Thirdparty/ORB_SLAM2/Vocabulary/ORBvoc.txt", 
+		    "/home/jjhu/Desktop/hei/jy_code/ICPORB_VO/settings/TUM/TUM1Elastic.yaml");
     std::string filename = fileName;
     filename.append(".freiburg");
 
