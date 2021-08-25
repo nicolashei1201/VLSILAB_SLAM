@@ -92,10 +92,15 @@ class RGBDOdometry
 
         DeviceArray<JtJJtrSE3> sumDataSE3;
         DeviceArray<JtJJtrSE3> outDataSE3;
+        DeviceArray<JtJJtrSE3> sumDataSE3cp;
+        DeviceArray<JtJJtrSE3> outDataSE3cp;
+        
         DeviceArray<int2> sumResidualRGB;
 
         DeviceArray<JtJJtrSO3> sumDataSO3;
         DeviceArray<JtJJtrSO3> outDataSO3;
+
+        
 
         const int sobelSize;
         const float sobelScale;

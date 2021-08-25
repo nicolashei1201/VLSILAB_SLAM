@@ -287,8 +287,8 @@ struct ICPReduction
         vcurr.y = vmap_curr.ptr (y + rows)[x];
         vcurr.z = vmap_curr.ptr (y + 2 * rows)[x];
 
-        float3 vcurr_g = Rcurr * vcurr + tcurr;
-        float3 vcurr_cp = Rprev_inv * (vcurr_g - tprev);
+        float3 vcurr_g = Rcurr * vcurr + tcurr; //vertice global
+        float3 vcurr_cp = Rprev_inv * (vcurr_g - tprev); //vertice current
 
         int2 ukr;
         ukr.x = __float2int_rn (vcurr_cp.x * intr.fx / vcurr_cp.z + intr.cx);
@@ -387,20 +387,26 @@ struct ICPReduction
     }
 
     __device__ __forceinline__ void
-    operator () () const
+    operator () (int k) const
     {
+        curandState_t state;
+        int id = threadIdx.x + blockDim.x * blockIdx.x;
+        int seed = id + k;
+        curand_init(seed, id, 0, &state);
+        int rand = curand(&state) % 100;
         JtJJtrSE3 sum = {0, 0, 0, 0, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0,
                          0, 0, 0, 0, 0};
 
         for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < N; i += blockDim.x * gridDim.x)
-        {
-            JtJJtrSE3 val = getProducts(i);
+        {   //if((i+k)%2 == 0){
+            if(rand>20){
+                JtJJtrSE3 val = getProducts(i);
 
-            sum.add(val);
+                sum.add(val);
+            }
         }
-
         sum = blockReduceSum(sum);
 
         if(threadIdx.x == 0)
@@ -410,11 +416,85 @@ struct ICPReduction
     }
 };
 
-__global__ void icpKernel(const ICPReduction icp)
+__global__ void icpKernel(const ICPReduction icp, int k)
 {
-    icp();
+    icp(k);
 }
 
+void icpStep2(const mat33& Rcurr,
+             const float3& tcurr,
+             const DeviceArray2D<float>& vmap_curr,
+             const DeviceArray2D<float>& nmap_curr,
+             const mat33& Rprev_inv,
+             const float3& tprev,
+             const CameraModel& intr,
+             const DeviceArray2D<float>& vmap_g_prev,
+             const DeviceArray2D<float>& nmap_g_prev,
+             float distThres,
+             float angleThres,
+             DeviceArray<JtJJtrSE3> & sum,
+             DeviceArray<JtJJtrSE3> & out,
+             float * matrixA_host,
+             float * vectorB_host,
+             float * residual_host,
+             int threads,
+             int blocks,
+             int k)
+{
+    int cols = vmap_curr.cols ();
+    int rows = vmap_curr.rows () / 3;
+
+    ICPReduction icp;
+
+    icp.Rcurr = Rcurr;
+    icp.tcurr = tcurr;
+
+    icp.vmap_curr = vmap_curr;
+    icp.nmap_curr = nmap_curr;
+
+    icp.Rprev_inv = Rprev_inv;
+    icp.tprev = tprev;
+
+    icp.intr = intr;
+
+    icp.vmap_g_prev = vmap_g_prev;
+    icp.nmap_g_prev = nmap_g_prev;
+
+    icp.distThres = distThres;
+    icp.angleThres = angleThres;
+
+    icp.cols = cols;
+    icp.rows = rows;
+
+    icp.N = cols * rows;
+    icp.out = sum;
+
+    icpKernel<<<blocks, threads>>>(icp, k);
+
+    reduceSum<<<1, MAX_THREADS>>>(sum, out, blocks);
+
+    cudaSafeCall(cudaGetLastError());
+    cudaSafeCall(cudaDeviceSynchronize());
+
+    float host_data[32];
+    out.download((JtJJtrSE3 *)&host_data[0]);
+
+    int shift = 0;
+    for (int i = 0; i < 6; ++i)
+    {
+        for (int j = i; j < 7; ++j)
+        {
+            float value = host_data[shift++];
+            if (j == 6)
+                vectorB_host[i] = value;
+            else
+                matrixA_host[j * 6 + i] = matrixA_host[i * 6 + j] = value;
+        }
+    }
+
+    residual_host[0] = host_data[27];
+    residual_host[1] = host_data[28];
+}
 void icpStep(const mat33& Rcurr,
              const float3& tcurr,
              const DeviceArray2D<float>& vmap_curr,
@@ -462,7 +542,7 @@ void icpStep(const mat33& Rcurr,
     icp.N = cols * rows;
     icp.out = sum;
 
-    icpKernel<<<blocks, threads>>>(icp);
+    icpKernel<<<blocks, threads>>>(icp, 0);
 
     reduceSum<<<1, MAX_THREADS>>>(sum, out, blocks);
 
@@ -488,7 +568,6 @@ void icpStep(const mat33& Rcurr,
     residual_host[0] = host_data[27];
     residual_host[1] = host_data[28];
 }
-
 #define FLT_EPSILON ((float)1.19209290E-07F)
 
 struct RGBReduction

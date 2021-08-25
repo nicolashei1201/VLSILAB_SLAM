@@ -473,10 +473,6 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             {
                 sigmaVal = -1; //Signals the internal optimisation to weight evenly
             }
-
-            Eigen::Matrix<float, 6, 6, Eigen::RowMajor> A_icp;
-            Eigen::Matrix<float, 6, 1> b_icp;
-
             mat33 device_Rcurr = Rcurr;
             float3 device_tcurr = *reinterpret_cast<float3*>(tcurr.data());
 
@@ -485,35 +481,10 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
 
             DeviceArray2D<float>& vmap_g_prev = vmaps_g_prev_[i];
             DeviceArray2D<float>& nmap_g_prev = nmaps_g_prev_[i];
-
-            float residual[2];
-
-            if(icp)
-            {
-                TICK("icpStep");
-                icpStep(device_Rcurr,
-                        device_tcurr,
-                        vmap_curr,
-                        nmap_curr,
-                        device_Rprev_inv,
-                        device_tprev,
-                        intr(i),
-                        vmap_g_prev,
-                        nmap_g_prev,
-                        distThres_,
-                        angleThres_,
-                        sumDataSE3,
-                        outDataSE3,
-                        A_icp.data(),
-                        b_icp.data(),
-                        &residual[0],
-                        GPUConfig::getInstance().icpStepThreads,
-                        GPUConfig::getInstance().icpStepBlocks);
-                TOCK("icpStep");
-            }
-
-            lastICPError = sqrt(residual[0]) / residual[1];
-            lastICPCount = residual[1];
+            Eigen::Vector3f euler_angles[10];
+            Eigen::Vector3f trans[10];
+            //icp step start
+            int sample_num = 5;
 
             Eigen::Matrix<float, 6, 6, Eigen::RowMajor> A_rgbd;
             Eigen::Matrix<float, 6, 1> b_rgbd;
@@ -538,51 +509,119 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                 TOCK("rgbStep");
             }
 
-            Eigen::Matrix<double, 6, 1> result;
             Eigen::Matrix<double, 6, 6, Eigen::RowMajor> dA_rgbd = A_rgbd.cast<double>();
-            Eigen::Matrix<double, 6, 6, Eigen::RowMajor> dA_icp = A_icp.cast<double>();
             Eigen::Matrix<double, 6, 1> db_rgbd = b_rgbd.cast<double>();
-            Eigen::Matrix<double, 6, 1> db_icp = b_icp.cast<double>();
+            Eigen::Matrix<double, 6, 1> result;
+            
+            for (int k = 0; k < sample_num; k++){
+                sumDataSE3cp = sumDataSE3;
+                outDataSE3cp = outDataSE3;
+                Eigen::Matrix<double, 6, 6, Eigen::RowMajor> dA_icp = Eigen::Matrix<double, 6, 6, Eigen::RowMajor>::Zero();
+                Eigen::Matrix<double, 6, 1> db_icp = Eigen::Matrix<double, 6, 1>::Zero();
+                Eigen::Matrix<float, 6, 6, Eigen::RowMajor> A_icp = Eigen::Matrix<float, 6, 6, Eigen::RowMajor>::Zero();
+                Eigen::Matrix<float, 6, 1> b_icp = Eigen::Matrix<float, 6, 1>::Zero();
+                
+                float residual[2] = {0,0};
+                if(icp)
+                {
+                    TICK("icpStep");
+                    icpStep2(device_Rcurr,
+                            device_tcurr,
+                            vmap_curr,
+                            nmap_curr,
+                            device_Rprev_inv,
+                            device_tprev,
+                            intr(i),
+                            vmap_g_prev,
+                            nmap_g_prev,
+                            distThres_,
+                            angleThres_,
+                            sumDataSE3cp,
+                            outDataSE3cp,
+                            A_icp.data(),
+                            b_icp.data(),
+                            &residual[0],
+                            GPUConfig::getInstance().icpStepThreads,
+                            GPUConfig::getInstance().icpStepBlocks,
+                            k);
+                    //std::cout<<"cols: "<<vmap_curr.cols ()<<", rows: "<<vmap_curr.rows ()<<"\n";
+                    TOCK("icpStep");
+                }
 
-            if(icp && rgb)
-            {
-                double w = icpWeight;
-                lastA = dA_rgbd + w * w * dA_icp;
-                lastb = db_rgbd + w * db_icp;
-                result = lastA.ldlt().solve(lastb);
+                lastICPError = sqrt(residual[0]) / residual[1];
+                lastICPCount = residual[1];
+                dA_icp = A_icp.cast<double>();
+                db_icp = b_icp.cast<double>();               
+                if(icp && rgb)
+                {
+                    double w = icpWeight;
+                    lastA = dA_rgbd + w * w * dA_icp;
+                    lastb = db_rgbd + w * db_icp;
+                    result = lastA.ldlt().solve(lastb);
+                }
+                else if(icp)
+                {
+                    lastA = dA_icp;
+                    lastb = db_icp;
+                    result = lastA.ldlt().solve(lastb);
+                }
+                else if(rgb)
+                {
+                    lastA = dA_rgbd;
+                    lastb = db_rgbd;
+                    result = lastA.ldlt().solve(lastb);
+                }
+                else
+                {
+                    assert(false && "Control shouldn't reach here");
+                }
+
+                Eigen::Isometry3f rgbOdom;
+
+                OdometryProvider::computeUpdateSE3Fake(resultRt, result, rgbOdom);
+
+                Eigen::Isometry3f currentT;
+                currentT.setIdentity();
+                currentT.rotate(Rprev);
+                currentT.translation() = tprev;
+
+                currentT = currentT * rgbOdom.inverse();
+
+                tcurr = currentT.translation();
+                Rcurr = currentT.rotation();
+                std::cout<<"task "<<k<<" : \n"<< Rcurr <<std::endl;
+                euler_angles[k] = Rcurr.eulerAngles(2,1,0);
+                trans[k] = tcurr;
+                std::cout<<"task eular "<<k<<" : "<< euler_angles[k].transpose() <<std::endl;
+               //std::cout<<"task back : \n"<< m <<std::endl;
+
             }
-            else if(icp)
-            {
-                lastA = dA_icp;
-                lastb = db_icp;
-                result = lastA.ldlt().solve(lastb);
+            OdometryProvider::computeUpdateSE3(resultRt, result);
+            //std::cout<<"task eular "<<k<<" : "<< euler_angles[k].transpose() <<std::endl;
+            Eigen::Vector3f rotAll(0,0,0);
+            Eigen::Vector3f transAll(0,0,0);
+            for(int i = 0; i<sample_num; i++){
+                 rotAll+=euler_angles[i];
+                 transAll+=trans[i];
             }
-            else if(rgb)
-            {
-                lastA = dA_rgbd;
-                lastb = db_rgbd;
-                result = lastA.ldlt().solve(lastb);
-            }
-            else
-            {
-                assert(false && "Control shouldn't reach here");
-            }
+            std::cout<<"task before eular all : "<< rotAll.transpose()<<std::endl;
+            rotAll = rotAll/sample_num;
+            transAll = transAll/sample_num;
+            //rotAll = euler_angles[0];
+            //transAll = trans[0];
+            //rotAll = rotAll;
+            std::cout<<"task eular all : "<< rotAll.transpose()<<std::endl;
+            Eigen::Matrix<float, 3, 3, 1> resultA;
 
-            Eigen::Isometry3f rgbOdom;
+            resultA = Eigen::AngleAxisf(rotAll.transpose()[0], Eigen::Vector3f::UnitZ())
+            * Eigen::AngleAxisf(rotAll.transpose()[1], Eigen::Vector3f::UnitY())
+            * Eigen::AngleAxisf(rotAll.transpose()[2], Eigen::Vector3f::UnitX());
+            std::cout<<"task back : "<< resultA <<std::endl;
 
-            OdometryProvider::computeUpdateSE3(resultRt, result, rgbOdom);
-
-            Eigen::Isometry3f currentT;
-            currentT.setIdentity();
-            currentT.rotate(Rprev);
-            currentT.translation() = tprev;
-
-            currentT = currentT * rgbOdom.inverse();
-
-            tcurr = currentT.translation();
-            Rcurr = currentT.rotation();
-        }
-    }
+            //tcurr = transAll;
+            //Rcurr = resultA;
+        }//iteration loop
+    }//pyrimid loop
 
     if(rgb && (tcurr - tprev).norm() > 0.3)
     {

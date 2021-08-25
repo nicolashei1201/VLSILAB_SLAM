@@ -55,6 +55,9 @@
 #include <cuda_runtime_api.h>
 #include <cstdlib>
 #include <iostream>
+#include <stdio.h>
+#include <curand.h>
+#include <curand_kernel.h>
 
 static inline int getGridDim(int x, int y)
 {
