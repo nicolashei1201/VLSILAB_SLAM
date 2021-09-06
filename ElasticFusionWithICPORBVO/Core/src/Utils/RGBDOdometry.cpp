@@ -484,8 +484,24 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             Eigen::Vector3f euler_angles[10];
             Eigen::Vector3f trans[10];
             //icp step start
-            int sample_num = 5;
-
+            int sample_num;
+            bool samp_flag;
+            bool pyrmid_flag = true;
+            if(pyrmid_flag){
+                if (i == 0){
+                    sample_num = 1;
+                    samp_flag = false;
+                    std::cout<<"No Rand Sample for "<< vmap_curr.cols() <<" x "<<vmap_curr.rows()/3<<"\n";
+                }
+                else{
+                    sample_num = 10;
+                    samp_flag = true;
+                }
+            }
+            else{
+                sample_num = 10;
+                samp_flag = true;
+            }
             Eigen::Matrix<float, 6, 6, Eigen::RowMajor> A_rgbd;
             Eigen::Matrix<float, 6, 1> b_rgbd;
 
@@ -525,25 +541,48 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                 if(icp)
                 {
                     TICK("icpStep");
-                    icpStep2(device_Rcurr,
-                            device_tcurr,
-                            vmap_curr,
-                            nmap_curr,
-                            device_Rprev_inv,
-                            device_tprev,
-                            intr(i),
-                            vmap_g_prev,
-                            nmap_g_prev,
-                            distThres_,
-                            angleThres_,
-                            sumDataSE3cp,
-                            outDataSE3cp,
-                            A_icp.data(),
-                            b_icp.data(),
-                            &residual[0],
-                            GPUConfig::getInstance().icpStepThreads,
-                            GPUConfig::getInstance().icpStepBlocks,
-                            k);
+                    if(samp_flag){
+                        icpStep2(device_Rcurr,
+                                device_tcurr,
+                                vmap_curr,
+                                nmap_curr,
+                                device_Rprev_inv,
+                                device_tprev,
+                                intr(i),
+                                vmap_g_prev,
+                                nmap_g_prev,
+                                distThres_,
+                                angleThres_,
+                                sumDataSE3cp,
+                                outDataSE3cp,
+                                A_icp.data(),
+                                b_icp.data(),
+                                &residual[0],
+                                GPUConfig::getInstance().icpStepThreads,
+                                GPUConfig::getInstance().icpStepBlocks,
+                                k);
+                    }
+                    else{
+                         icpStep(device_Rcurr,
+                                device_tcurr,
+                                vmap_curr,
+                                nmap_curr,
+                                device_Rprev_inv,
+                                device_tprev,
+                                intr(i),
+                                vmap_g_prev,
+                                nmap_g_prev,
+                                distThres_,
+                                angleThres_,
+                                sumDataSE3cp,
+                                outDataSE3cp,
+                                A_icp.data(),
+                                b_icp.data(),
+                                &residual[0],
+                                GPUConfig::getInstance().icpStepThreads,
+                                GPUConfig::getInstance().icpStepBlocks
+                                );
+                    }
                     //std::cout<<"cols: "<<vmap_curr.cols ()<<", rows: "<<vmap_curr.rows ()<<"\n";
                     TOCK("icpStep");
                 }
@@ -600,16 +639,52 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             //std::cout<<"task eular "<<k<<" : "<< euler_angles[k].transpose() <<std::endl;
             Eigen::Vector3f rotAll(0,0,0);
             Eigen::Vector3f transAll(0,0,0);
+
+            //get rid of outlier pose
+            double rot_score [sample_num];
+            double rot_score_sum;
+            double trans_score [sample_num];
+            double trans_score_sum;
+            int final_num = sample_num;
+            for(int a = 0; a<sample_num; a++){
+                double rot_sum = 0;
+                double trans_sum = 0;
+                for(int z = 0; z<sample_num; z++){
+                    rot_sum += (euler_angles[a] - euler_angles[z]).norm();
+                    trans_sum += (trans[a] - trans[z]).norm();
+                }
+                rot_score[a] = rot_sum;
+                trans_score[a] = trans_sum;
+
+                rot_score_sum += rot_sum;
+                trans_score_sum += trans_sum;
+            }
+            double rot_score_mean = rot_score_sum/sample_num;
+            double trans_score_mean = trans_score_sum/sample_num;
+            for (int a = 0; a<sample_num;a++){
+                //std::cout<<"rot score"<<a<<":"<<rot_score[a]<<"\n";
+                //std::cout<<"trans score"<<a<<":"<<trans_score[a]<<"\n";
+                //double sumup = trans_score[a] + rot_score[a];
+                //std::cout<<"sum up score"<<a<<":"<<sumup<<"\n";
+                if (rot_score[a]>rot_score_mean || trans_score[a]>trans_score_mean){
+                    euler_angles[a] = Eigen::Vector3f::Zero();
+                    trans[a] = Eigen::Vector3f::Zero();
+                    final_num = final_num - 1;
+                    std::cout<<"Bye~~~~\n";
+
+                }
+            }
+            //get rid of outlier pose end
+
             for(int i = 0; i<sample_num; i++){
                  rotAll+=euler_angles[i];
                  transAll+=trans[i];
             }
             std::cout<<"task before eular all : "<< rotAll.transpose()<<std::endl;
-            rotAll = rotAll/sample_num;
-            transAll = transAll/sample_num;
-            //rotAll = euler_angles[0];
-            //transAll = trans[0];
-            //rotAll = rotAll;
+            rotAll = rotAll/final_num;
+            transAll = transAll/final_num;
+            //rotAll = euler_angles[9];
+            //transAll = trans[9];
             std::cout<<"task eular all : "<< rotAll.transpose()<<std::endl;
             Eigen::Matrix<float, 3, 3, 1> resultA;
 
@@ -618,8 +693,8 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             * Eigen::AngleAxisf(rotAll.transpose()[2], Eigen::Vector3f::UnitX());
             std::cout<<"task back : "<< resultA <<std::endl;
 
-            //tcurr = transAll;
-            //Rcurr = resultA;
+            tcurr = transAll;
+            Rcurr = resultA;
         }//iteration loop
     }//pyrimid loop
 

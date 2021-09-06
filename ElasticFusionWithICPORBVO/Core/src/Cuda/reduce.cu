@@ -387,20 +387,22 @@ struct ICPReduction
     }
 
     __device__ __forceinline__ void
-    operator () (int k) const
+    operator () (int k, curandState_t* state) const
     {
-        curandState_t state;
+        //curandState_t state;
         int id = threadIdx.x + blockDim.x * blockIdx.x;
-        int seed = id + k;
-        curand_init(seed, id, 0, &state);
-        int rand = curand(&state) % 100;
+        int seed = id + k - 1;
+        curand_init(seed, id, 0, &state[blockIdx.x]);
+        
         JtJJtrSE3 sum = {0, 0, 0, 0, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0,
                          0, 0, 0, 0, 0, 0, 0, 0,
                          0, 0, 0, 0, 0};
 
+        int rand = curand(&state[blockIdx.x]) % 100;
         for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < N; i += blockDim.x * gridDim.x)
         {   //if((i+k)%2 == 0){
+            
             if(rand>20){
                 JtJJtrSE3 val = getProducts(i);
 
@@ -414,9 +416,37 @@ struct ICPReduction
             out[blockIdx.x] = sum;
         }
     }
+        __device__ __forceinline__ void
+    operator () (int k) const
+    {
+
+        JtJJtrSE3 sum = {0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0};
+
+        for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < N; i += blockDim.x * gridDim.x)
+        {   //if((i+k)%2 == 0){
+
+                JtJJtrSE3 val = getProducts(i);
+
+                sum.add(val);
+
+        }
+        sum = blockReduceSum(sum);
+
+        if(threadIdx.x == 0)
+        {
+            out[blockIdx.x] = sum;
+        }
+    }
 };
 
-__global__ void icpKernel(const ICPReduction icp, int k)
+__global__ void icpKernel(const ICPReduction icp, int k, curandState_t* states)
+{
+    icp(k, states);
+}
+__global__ void icpKernel2(const ICPReduction icp, int k)
 {
     icp(k);
 }
@@ -469,7 +499,10 @@ void icpStep2(const mat33& Rcurr,
     icp.N = cols * rows;
     icp.out = sum;
 
-    icpKernel<<<blocks, threads>>>(icp, k);
+    curandState_t* states;
+    cudaMalloc((void**) &states, blocks * sizeof(curandState_t));
+
+    icpKernel<<<blocks, threads>>>(icp, k, states);
 
     reduceSum<<<1, MAX_THREADS>>>(sum, out, blocks);
 
@@ -542,7 +575,7 @@ void icpStep(const mat33& Rcurr,
     icp.N = cols * rows;
     icp.out = sum;
 
-    icpKernel<<<blocks, threads>>>(icp, 0);
+    icpKernel2<<<blocks, threads>>>(icp, 0);
 
     reduceSum<<<1, MAX_THREADS>>>(sum, out, blocks);
 

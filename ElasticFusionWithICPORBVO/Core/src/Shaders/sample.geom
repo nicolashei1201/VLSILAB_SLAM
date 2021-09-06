@@ -32,8 +32,8 @@ void main()
 {
     if(id[0] % 1000 == 0)
     {
-            vData.xyz = vPosition0[0].xyz;
-            vData.w = vColorTime0[0].z;
+            //vData.xyz = vPosition0[0].xyz;
+            //vData.w = vColorTime0[0].z;
             EmitVertex();
             EndPrimitive();
     }
