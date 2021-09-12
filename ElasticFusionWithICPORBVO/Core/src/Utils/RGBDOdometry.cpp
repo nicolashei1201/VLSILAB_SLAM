@@ -483,6 +483,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             DeviceArray2D<float>& nmap_g_prev = nmaps_g_prev_[i];
             Eigen::Vector3f euler_angles[10];
             Eigen::Vector3f trans[10];
+            Eigen::Matrix<double, 6, 1> result_all[10];
             //icp step start
             int sample_num;
             bool samp_flag;
@@ -529,6 +530,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             Eigen::Matrix<double, 6, 1> db_rgbd = b_rgbd.cast<double>();
             Eigen::Matrix<double, 6, 1> result;
             
+
             for (int k = 0; k < sample_num; k++){
                 sumDataSE3cp = sumDataSE3;
                 outDataSE3cp = outDataSE3;
@@ -615,6 +617,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                     assert(false && "Control shouldn't reach here");
                 }
 
+                result_all[k] = result;
                 Eigen::Isometry3f rgbOdom;
 
                 OdometryProvider::computeUpdateSE3Fake(resultRt, result, rgbOdom);
@@ -635,10 +638,11 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                //std::cout<<"task back : \n"<< m <<std::endl;
 
             }
-            OdometryProvider::computeUpdateSE3(resultRt, result);
+            //OdometryProvider::computeUpdateSE3(resultRt, result);
             //std::cout<<"task eular "<<k<<" : "<< euler_angles[k].transpose() <<std::endl;
             Eigen::Vector3f rotAll(0,0,0);
             Eigen::Vector3f transAll(0,0,0);
+            Eigen::Matrix<double, 6, 1> result_sum = Eigen::Matrix<double, 6, 1>::Zero();
 
             //get rid of outlier pose
             double rot_score [sample_num];
@@ -669,6 +673,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                 if (rot_score[a]>rot_score_mean || trans_score[a]>trans_score_mean){
                     euler_angles[a] = Eigen::Vector3f::Zero();
                     trans[a] = Eigen::Vector3f::Zero();
+                    result_all[a] = Eigen::Matrix<double, 6, 1>::Zero();
                     final_num = final_num - 1;
                     std::cout<<"Bye~~~~\n";
 
@@ -679,10 +684,12 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             for(int i = 0; i<sample_num; i++){
                  rotAll+=euler_angles[i];
                  transAll+=trans[i];
+                 result_sum += result_all[i];
             }
             std::cout<<"task before eular all : "<< rotAll.transpose()<<std::endl;
             rotAll = rotAll/final_num;
             transAll = transAll/final_num;
+            result = result_sum/final_num;
             //rotAll = euler_angles[9];
             //transAll = trans[9];
             std::cout<<"task eular all : "<< rotAll.transpose()<<std::endl;
@@ -692,7 +699,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             * Eigen::AngleAxisf(rotAll.transpose()[1], Eigen::Vector3f::UnitY())
             * Eigen::AngleAxisf(rotAll.transpose()[2], Eigen::Vector3f::UnitX());
             std::cout<<"task back : "<< resultA <<std::endl;
-
+            OdometryProvider::computeUpdateSE3(resultRt, result);
             tcurr = transAll;
             Rcurr = resultA;
         }//iteration loop

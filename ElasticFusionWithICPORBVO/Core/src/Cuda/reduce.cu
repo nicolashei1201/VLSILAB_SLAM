@@ -391,7 +391,7 @@ struct ICPReduction
     {
         //curandState_t state;
         int id = threadIdx.x + blockDim.x * blockIdx.x;
-        int seed = id + k - 1;
+        int seed = id + k;
         curand_init(seed, id, 0, &state[blockIdx.x]);
         
         JtJJtrSE3 sum = {0, 0, 0, 0, 0, 0, 0, 0,
@@ -399,9 +399,10 @@ struct ICPReduction
                          0, 0, 0, 0, 0, 0, 0, 0,
                          0, 0, 0, 0, 0};
 
-        int rand = curand(&state[blockIdx.x]) % 100;
+        
         for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < N; i += blockDim.x * gridDim.x)
         {   //if((i+k)%2 == 0){
+            int rand = curand(&state[blockIdx.x]) % 100;
             
             if(rand>20){
                 JtJJtrSE3 val = getProducts(i);
