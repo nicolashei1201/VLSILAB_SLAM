@@ -82,6 +82,7 @@ class RGBDOdometry
         DeviceArray<float> vmaps_tmp;
         DeviceArray<float> nmaps_tmp;
 
+
         std::vector<DeviceArray2D<float> > vmaps_g_prev_;
         std::vector<DeviceArray2D<float> > nmaps_g_prev_;
 
@@ -94,7 +95,7 @@ class RGBDOdometry
         DeviceArray<JtJJtrSE3> outDataSE3;
         DeviceArray<JtJJtrSE3> sumDataSE3cp;
         DeviceArray<JtJJtrSE3> outDataSE3cp;
-        
+
         DeviceArray<int2> sumResidualRGB;
 
         DeviceArray<JtJJtrSO3> sumDataSO3;
