@@ -69,7 +69,27 @@ class OdometryProvider
 
             return dst;
         }
+        static inline void computeUpdateSE3Real(Eigen::Matrix<double, 4, 4, Eigen::RowMajor> & resultRt, const Eigen::Matrix<double, 6, 1> & result, Eigen::Isometry3f & rgbOdom)
+        {
+            // for infinitesimal transformation
+            Eigen::Matrix<double, 4, 4, Eigen::RowMajor> Rt = Eigen::Matrix<double, 4, 4, Eigen::RowMajor>::Identity();
 
+            Eigen::Vector3d rvec(result(3), result(4), result(5));
+
+            Eigen::Matrix<double, 3, 3, Eigen::RowMajor> R = rodrigues(rvec);
+
+            Rt.topLeftCorner(3, 3) = R;
+            Rt(0, 3) = result(0);
+            Rt(1, 3) = result(1);
+            Rt(2, 3) = result(2);
+
+            resultRt = Rt * resultRt;
+
+            Eigen::Matrix<double, 3, 3, Eigen::RowMajor> rotation = resultRt.topLeftCorner(3, 3);
+            rgbOdom.setIdentity();
+            rgbOdom.rotate(rotation.cast<float>().eval());
+            rgbOdom.translation() = resultRt.cast<float>().eval().topRightCorner(3, 1);
+        }
         static inline void computeUpdateSE3(Eigen::Matrix<double, 4, 4, Eigen::RowMajor> & resultRt, const Eigen::Matrix<double, 6, 1> & result)
         {
             // for infinitesimal transformation

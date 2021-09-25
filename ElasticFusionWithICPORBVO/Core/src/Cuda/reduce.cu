@@ -52,7 +52,6 @@
 #include "cudafuncs.cuh"
 #include "convenience.cuh"
 #include "operators.cuh"
-
 #if __CUDA_ARCH__ < 300
 __inline__ __device__
 float __shfl_down(float val, int offset, int width = 32)
@@ -325,7 +324,7 @@ struct ICPReduction
 
         return (sine < angleThres && dist <= distThres && !isnan (ncurr.x) && !isnan (nprev_g.x));
     }
-        __device__ __forceinline__ bool
+    __device__ __forceinline__ bool
     ReturnCorres (int & i, float inlier_thres) const
     {
         int y = i / cols;
@@ -368,6 +367,51 @@ struct ICPReduction
 
 
         return (sine < 0.1736 && dist <= inlier_thres && !isnan (ncurr.x) && !isnan (nprev_g.x));
+       //return false;
+    }
+    __device__ __forceinline__ bool
+    ReturnCorresFull (int & i) const
+    {
+        int y = i / cols;
+        int x = i - (y * cols);
+
+        float3 vcurr;
+        vcurr.x = vmap_curr.ptr (y       )[x];
+        vcurr.y = vmap_curr.ptr (y + rows)[x];
+        vcurr.z = vmap_curr.ptr (y + 2 * rows)[x];
+
+        float3 vcurr_g = Rcurr * vcurr + tcurr; //vertice global
+        float3 vcurr_cp = Rprev_inv * (vcurr_g - tprev); //vertice current
+
+        int2 ukr;
+        ukr.x = __float2int_rn (vcurr_cp.x * intr.fx / vcurr_cp.z + intr.cx);
+        ukr.y = __float2int_rn (vcurr_cp.y * intr.fy / vcurr_cp.z + intr.cy);
+
+        if(ukr.x < 0 || ukr.y < 0 || ukr.x >= cols || ukr.y >= rows || vcurr_cp.z < 0)
+            return false;
+
+        float3 vprev_g;
+        vprev_g.x = __ldg(&vmap_g_prev.ptr (ukr.y       )[ukr.x]);
+        vprev_g.y = __ldg(&vmap_g_prev.ptr (ukr.y + rows)[ukr.x]);
+        vprev_g.z = __ldg(&vmap_g_prev.ptr (ukr.y + 2 * rows)[ukr.x]);
+
+        float3 ncurr;
+        ncurr.x = nmap_curr.ptr (y)[x];
+        ncurr.y = nmap_curr.ptr (y + rows)[x];
+        ncurr.z = nmap_curr.ptr (y + 2 * rows)[x];
+
+        float3 ncurr_g = Rcurr * ncurr;
+
+        float3 nprev_g;
+        nprev_g.x =  __ldg(&nmap_g_prev.ptr (ukr.y)[ukr.x]);
+        nprev_g.y = __ldg(&nmap_g_prev.ptr (ukr.y + rows)[ukr.x]);
+        nprev_g.z = __ldg(&nmap_g_prev.ptr (ukr.y + 2 * rows)[ukr.x]);
+
+        float dist = norm (vprev_g - vcurr_g);
+        float sine = norm (cross (ncurr_g, nprev_g));
+
+
+        return (sine < angleThres && dist <= distThres && !isnan (ncurr.x) && !isnan (nprev_g.x));
        //return false;
     }
 
@@ -432,7 +476,67 @@ struct ICPReduction
 
         return values;
     }
+__device__ __forceinline__ JtJJtrSE3
+    getProducts2(int & i, char* corres_map) const
+    {
+        int y = i / cols;
+        int x = i - (y * cols);
 
+        float3 n_cp, d_cp, s_cp;
+
+        bool found_coresp = search (x, y, n_cp, d_cp, s_cp);
+
+        float row[7] = {0, 0, 0, 0, 0, 0, 0};
+
+        if(corres_map[i] == 1 && found_coresp)
+        {
+            s_cp = Rprev_inv * (s_cp - tprev);
+            d_cp = Rprev_inv * (d_cp - tprev);
+            n_cp = Rprev_inv * (n_cp);
+
+            *(float3*)&row[0] = n_cp;
+            *(float3*)&row[3] = cross (s_cp, n_cp);
+            row[6] = dot (n_cp, s_cp - d_cp);
+        }
+
+        JtJJtrSE3 values = {row[0] * row[0],
+                            row[0] * row[1],
+                            row[0] * row[2],
+                            row[0] * row[3],
+                            row[0] * row[4],
+                            row[0] * row[5],
+                            row[0] * row[6],
+
+                            row[1] * row[1],
+                            row[1] * row[2],
+                            row[1] * row[3],
+                            row[1] * row[4],
+                            row[1] * row[5],
+                            row[1] * row[6],
+
+                            row[2] * row[2],
+                            row[2] * row[3],
+                            row[2] * row[4],
+                            row[2] * row[5],
+                            row[2] * row[6],
+
+                            row[3] * row[3],
+                            row[3] * row[4],
+                            row[3] * row[5],
+                            row[3] * row[6],
+
+                            row[4] * row[4],
+                            row[4] * row[5],
+                            row[4] * row[6],
+
+                            row[5] * row[5],
+                            row[5] * row[6],
+
+                            row[6] * row[6],
+                            found_coresp};
+
+        return values;
+    }
     __device__ __forceinline__ void
     operator () (int k, curandState_t* state) const
     {
@@ -450,7 +554,7 @@ struct ICPReduction
         for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < N; i += blockDim.x * gridDim.x)
         {   //if((i+k)%2 == 0){
             int rand = curand(&state[blockIdx.x]) % 100;
-            if(rand>20){
+            if(rand>90){
                 JtJJtrSE3 val = getProducts(i);
 
                 sum.add(val);
@@ -478,6 +582,29 @@ struct ICPReduction
                 JtJJtrSE3 val = getProducts(i);
 
                 sum.add(val);
+
+        }
+        sum = blockReduceSum(sum);
+
+        if(threadIdx.x == 0)
+        {
+            out[blockIdx.x] = sum;
+        }
+    }
+    __device__ __forceinline__ void
+    operator () (char* corres_map) const
+    {
+
+        JtJJtrSE3 sum = {0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0};
+
+        for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < N; i += blockDim.x * gridDim.x)
+        {   //if((i+k)%2 == 0){
+                    JtJJtrSE3 val = getProducts2(i, corres_map);
+
+                    sum.add(val);
 
         }
         sum = blockReduceSum(sum);
@@ -533,6 +660,10 @@ __global__ void icpKernel(const ICPReduction icp, int k, curandState_t* states)
 __global__ void icpKernel2(const ICPReduction icp, int k)
 {
     icp(k);
+}
+__global__ void icpKernelCorresMap(const ICPReduction icp, char* corres_map)
+{
+    icp(corres_map);
 }
 __global__ void CheckCorresKernel(const ICPReduction icp, bool* corres_flagg)
 {
@@ -615,6 +746,7 @@ void icpStep2(const mat33& Rcurr,
 
     residual_host[0] = host_data[27];
     residual_host[1] = host_data[28];
+    cudaFree( states );
 }
 void icpStep(const mat33& Rcurr,
              const float3& tcurr,
@@ -689,6 +821,85 @@ void icpStep(const mat33& Rcurr,
     residual_host[0] = host_data[27];
     residual_host[1] = host_data[28];
 }
+void icpStepCorresMap(const mat33& Rcurr,
+             const float3& tcurr,
+             const DeviceArray2D<float>& vmap_curr,
+             const DeviceArray2D<float>& nmap_curr,
+             const mat33& Rprev_inv,
+             const float3& tprev,
+             const CameraModel& intr,
+             const DeviceArray2D<float>& vmap_g_prev,
+             const DeviceArray2D<float>& nmap_g_prev,
+             float distThres,
+             float angleThres,
+             DeviceArray<JtJJtrSE3> & sum,
+             DeviceArray<JtJJtrSE3> & out,
+             float * matrixA_host,
+             float * vectorB_host,
+             float * residual_host,
+             char * corres_map,
+             int threads,
+             int blocks)
+{
+    int cols = vmap_curr.cols ();
+    int rows = vmap_curr.rows () / 3;
+
+    ICPReduction icp;
+
+    icp.Rcurr = Rcurr;
+    icp.tcurr = tcurr;
+
+    icp.vmap_curr = vmap_curr;
+    icp.nmap_curr = nmap_curr;
+
+    icp.Rprev_inv = Rprev_inv;
+    icp.tprev = tprev;
+
+    icp.intr = intr;
+
+    icp.vmap_g_prev = vmap_g_prev;
+    icp.nmap_g_prev = nmap_g_prev;
+
+    icp.distThres = distThres;
+    icp.angleThres = angleThres;
+
+    icp.cols = cols;
+    icp.rows = rows;
+
+    icp.N = cols * rows;
+    icp.out = sum;
+
+    char *corres_flagg;
+    cudaMalloc((void**)&corres_flagg, cols*rows*sizeof(char));
+    cudaMemcpy(corres_flagg, &corres_map[0], cols*rows*sizeof(char), cudaMemcpyHostToDevice);
+
+    icpKernelCorresMap<<<blocks, threads>>>(icp, corres_flagg);
+
+    reduceSum<<<1, MAX_THREADS>>>(sum, out, blocks);
+
+    cudaSafeCall(cudaGetLastError());
+    cudaSafeCall(cudaDeviceSynchronize());
+
+    float host_data[32];
+    out.download((JtJJtrSE3 *)&host_data[0]);
+
+    int shift = 0;
+    for (int i = 0; i < 6; ++i)
+    {
+        for (int j = i; j < 7; ++j)
+        {
+            float value = host_data[shift++];
+            if (j == 6)
+                vectorB_host[i] = value;
+            else
+                matrixA_host[j * 6 + i] = matrixA_host[i * 6 + j] = value;
+        }
+    }
+
+    residual_host[0] = host_data[27];
+    residual_host[1] = host_data[28];
+    cudaFree( corres_flagg );
+}
 void GetCorresStep( const mat33& Rcurr,
                     const float3& tcurr,
                     const DeviceArray2D<float>& vmap_curr,
@@ -705,7 +916,7 @@ void GetCorresStep( const mat33& Rcurr,
                     float * matrixA_host,
                     float * vectorB_host,
                     float * residual_host,
-                    int * corres_flag,
+                    char * corres_flag,
                     int threads,
                     int blocks)
 {
@@ -765,7 +976,7 @@ void GetCorresStep( const mat33& Rcurr,
             corres_flag[a] = 0;
         }
     }
-    //cudaFree(corres_flagg);
+    cudaFree(corres_flagg);
 }
 #define FLT_EPSILON ((float)1.19209290E-07F)
 
