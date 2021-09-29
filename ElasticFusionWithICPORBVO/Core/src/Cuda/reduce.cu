@@ -632,7 +632,7 @@ __device__ __forceinline__ JtJJtrSE3
             JtJJtrSE3 values = {    0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0,
-                                    0, 0, 0, 0, ReturnCorres(i,0.05)};
+                                    0, 0, 0, 0, ReturnCorresFull(i)};
 
             if(ReturnCorres(i,0.05)){
                 corres_flagg[i] = true;

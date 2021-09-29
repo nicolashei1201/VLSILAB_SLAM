@@ -686,10 +686,12 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                     std::cout<<"all corres num: "<<all_num<<"\n";
                     //std::cout<<"all sampled count: "<<sampled_count<<"\n";           
                     //float inlier_ratio = inlier2[1]/(vmap_curr.cols()*vmap_curr.rows()/3);
-                    float inlier_ratio = inlier2[1];
-                    std::cout<<"inlier :"<<inlier2[1]<<"\n";
-                    std::cout<<"inlier ratio:"<<inlier2[1]/all_num<<"\n";
-                    inlier_ratio_all[k] = inlier_ratio;
+                    float inlier_ratio = all_num/inlier2[1];
+                    std::cout<<"full inlier :"<<inlier2[1]<<"\n";
+                    std::cout<<"sampled_count:"<<all_num<<"\n";
+                    std::cout<<"inlier ratio:"<<all_num/inlier2[1]<<"\n";
+                    //inlier_ratio_all[k] = inlier_ratio;
+                    inlier_ratio_all[k] = all_num;
                 }
                 /*
                 for(int af = 0;af<120*160;af++){
@@ -704,6 +706,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             //std::cout<<"task eular "<<0<<" : "<< euler_angles[0].transpose() <<std::endl;
             Eigen::Vector3f rotAll(0,0,0);
             Eigen::Vector3f transAll(0,0,0);
+            Eigen::Matrix<double, 6, 1> result_sum = Eigen::Matrix<double, 6, 1>::Zero();
             //Eigen::Vector3f rotTmp(0,0,0);
             //Eigen::Vector3f transTmp(0,0,0);
 
@@ -713,35 +716,74 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             double rot_score_sum;
             double trans_score [sample_num];
             double trans_score_sum;
-            int final_num = sample_num;
+            int front_order = 20;
+            int final_num = front_order;
+            if(samp_flag){
+                for ( int a = sample_num - 1; a>0; a--){
+                    for(int s = 0; s < a - 1; s++){
+                        if (inlier_ratio_all[s]<inlier_ratio_all[s + 1]){
+                            Eigen::Vector3f rotTmp = euler_angles[s];
+                            euler_angles[s] = euler_angles[s + 1];
+                            euler_angles[s + 1] = rotTmp;
 
-            for ( int a = sample_num - 1; a>0; a--){
-                for(int s = 0; s < a - 1; s++){
-                    if (inlier_ratio_all[s]<inlier_ratio_all[s + 1]){
-                        Eigen::Vector3f rotTmp = euler_angles[s];
-                        euler_angles[s] = euler_angles[s + 1];
-                        euler_angles[s + 1] = rotTmp;
+                            Eigen::Vector3f transTmp = trans[s];
+                            trans[s] = trans[s + 1];
+                            trans[s + 1] = transTmp;
 
-                        Eigen::Vector3f transTmp = trans[s];
-                        trans[s] = trans[s + 1];
-                        trans[s + 1] = transTmp;
+                            float inlier_ratio_tmp = inlier_ratio_all[s];
+                            inlier_ratio_all[s] = inlier_ratio_all[s + 1];
+                            inlier_ratio_all[s + 1] = inlier_ratio_tmp;
 
-                        float inlier_ratio_tmp = inlier_ratio_all[s];
-                        inlier_ratio_all[s] = inlier_ratio_all[s + 1];
-                        inlier_ratio_all[s + 1] = inlier_ratio_tmp;
+                            Eigen::Matrix<double, 6, 1> result_tmp = result_all[s];
+                            result_all[s] = result_all[s + 1];
+                            result_all[s + 1] = result_all[s];
 
-                        Eigen::Matrix<double, 6, 1> result_tmp = result_all[s];
-                        result_all[s] = result_all[s + 1];
-                        result_all[s + 1] = result_all[s];
+                        }
+                    }
+
+                }
+                
+                for(int a = 0; a<front_order; a++){
+                    double rot_sum = 0;
+                    double trans_sum = 0;
+                    for(int z = 0; z<front_order; z++){
+                        rot_sum += (euler_angles[a] - euler_angles[z]).norm();
+                        trans_sum += (trans[a] - trans[z]).norm();
+                    }
+                    rot_score[a] = rot_sum;
+                    trans_score[a] = trans_sum;
+
+                    rot_score_sum += rot_sum;
+                    trans_score_sum += trans_sum;
+                }
+                double rot_score_mean = rot_score_sum/front_order;
+                double trans_score_mean = trans_score_sum/front_order;
+                for (int a = 0; a<front_order;a++){
+                    //std::cout<<"rot score"<<a<<":"<<rot_score[a]<<"\n";
+                    //std::cout<<"trans score"<<a<<":"<<trans_score[a]<<"\n";
+                    //double sumup = trans_score[a] + rot_score[a];
+                    //std::cout<<"sum up score"<<a<<":"<<sumup<<"\n";
+                    if (rot_score[a]>rot_score_mean || trans_score[a]>trans_score_mean){
+                        euler_angles[a] = Eigen::Vector3f::Zero();
+                        trans[a] = Eigen::Vector3f::Zero();
+                        result_all[a] = Eigen::Matrix<double, 6, 1>::Zero();
+                        final_num = final_num - 1;
+                        std::cout<<"Bye~~~~\n";
 
                     }
                 }
+                //get rid of outlier pose end
 
+                for(int i = 0; i<front_order; i++){
+                    rotAll+=euler_angles[i];
+                    transAll+=trans[i];
+                    result_sum += result_all[i];
+                }
+                //get rid of outlier pose end
+                rotAll = rotAll/final_num;
+                transAll = transAll/final_num;
+                result = result_sum/final_num;
             }
-            //get rid of outlier pose end
-            rotAll = euler_angles[0];
-            transAll = trans[0];
-            result = result_all[0];
             OdometryProvider::computeUpdateSE3(resultRt, result);
             /*
             if (i == 0){
@@ -765,8 +807,8 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             * Eigen::AngleAxisf(rotAll.transpose()[2], Eigen::Vector3f::UnitX());
             //std::cout<<"task back : "<< resultA <<std::endl;
 
-            tcurr = transAll;
-            Rcurr = resultA;
+            //tcurr = transAll;
+            //Rcurr = resultA;
             if(samp_flag){
 
                 Eigen::Matrix<float, 6, 6, Eigen::RowMajor> A_icp;
@@ -803,7 +845,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                     all_num += corres_flag[z];
                 }
                 std::cout<<"all corres num: "<<all_num<<"\n";
-                 
+                std::cout<<"opt inlier ratio: "<<all_num/residual[1]<<"\n"; 
                 icpStepCorresMap(   device_Rcurr,
                                     device_tcurr,
                                     vmap_curr,
@@ -867,6 +909,10 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
 
                 tcurr = currentT.translation();
                 Rcurr = currentT.rotation();
+            }
+            else{
+                tcurr = tcurr;
+                Rcurr = Rcurr;
             }
         }//iteration loop
     }//pyrimid loop
