@@ -533,7 +533,7 @@ __device__ __forceinline__ JtJJtrSE3
                             row[5] * row[6],
 
                             row[6] * row[6],
-                            found_coresp};
+                            corres_map[i] == 1 && found_coresp};
 
         return values;
     }
@@ -632,7 +632,7 @@ __device__ __forceinline__ JtJJtrSE3
             JtJJtrSE3 values = {    0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, 0, 0, 0, 0,
-                                    0, 0, 0, 0, ReturnCorres(i,0.05)};
+                                    0, 0, 0, 0, ReturnCorresFull(i)};
 
             if(ReturnCorres(i,0.05)){
                 corres_flagg[i] = true;
@@ -650,7 +650,42 @@ __device__ __forceinline__ JtJJtrSE3
         }
         //corres_all = all_corres +all_corres;
     }
-    
+    __device__ __forceinline__ void
+    CheckCorresFull(bool* corres_flagg) const
+    {
+
+        int all_corres = 0;
+        JtJJtrSE3 sum =        {    0, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0, 0, 0, 0};
+
+        for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < N; i += blockDim.x * gridDim.x)
+        {   //if((i+k)%2 == 0){
+            int y = i / cols;
+            int x = i - (y * cols);
+
+            JtJJtrSE3 values = {    0, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0, 0, 0, 0, 0, 0, 0,
+                                    0, 0, 0, 0, ReturnCorresFull(i)};
+
+            if(ReturnCorresFull(i)){
+                corres_flagg[i] = true;
+            }
+            else{
+                corres_flagg[i] = false;
+            }
+            sum.add(values);            
+        }
+        sum = blockReduceSum(sum);
+
+        if(threadIdx.x == 0)
+        {
+            out[blockIdx.x] = sum;
+        }
+        //corres_all = all_corres +all_corres;
+    }
 };
 
 __global__ void icpKernel(const ICPReduction icp, int k, curandState_t* states)
@@ -670,6 +705,10 @@ __global__ void CheckCorresKernel(const ICPReduction icp, bool* corres_flagg)
     icp.CheckCorres(corres_flagg);
 }
 
+__global__ void CheckCorresFullKernel(const ICPReduction icp, bool* corres_flagg)
+{
+    icp.CheckCorresFull(corres_flagg);
+}
 void icpStep2(const mat33& Rcurr,
              const float3& tcurr,
              const DeviceArray2D<float>& vmap_curr,
@@ -954,6 +993,84 @@ void GetCorresStep( const mat33& Rcurr,
 
 
     CheckCorresKernel<<<blocks, threads>>>(icp, corres_flagg);
+
+    reduceSum<<<1, MAX_THREADS>>>(sum, out, blocks);
+
+    cudaSafeCall(cudaGetLastError());
+    cudaSafeCall(cudaDeviceSynchronize());;
+
+    float host_data[32];
+    bool corres_data[rows*cols];
+    
+    out.download((JtJJtrSE3 *)&host_data[0]);
+    cudaMemcpy(&corres_data[0], corres_flagg, cols*rows*sizeof(bool),  cudaMemcpyDeviceToHost);
+    residual_host[0] = host_data[27];
+    residual_host[1] = host_data[28];
+
+    for (int a = 0; a<cols * rows; a++){
+        if(corres_data[a]){
+            corres_flag[a] = 1;
+        }
+        else{
+            corres_flag[a] = 0;
+        }
+    }
+    cudaFree(corres_flagg);
+}
+void GetCorresStepFull( const mat33& Rcurr,
+                    const float3& tcurr,
+                    const DeviceArray2D<float>& vmap_curr,
+                    const DeviceArray2D<float>& nmap_curr,
+                    const mat33& Rprev_inv,
+                    const float3& tprev,
+                    const CameraModel& intr,
+                    const DeviceArray2D<float>& vmap_g_prev,
+                    const DeviceArray2D<float>& nmap_g_prev,
+                    float distThres,
+                    float angleThres,
+                    DeviceArray<JtJJtrSE3> & sum,
+                    DeviceArray<JtJJtrSE3> & out,
+                    float * matrixA_host,
+                    float * vectorB_host,
+                    float * residual_host,
+                    char * corres_flag,
+                    int threads,
+                    int blocks)
+{
+    
+    int cols = vmap_curr.cols ();
+    int rows = vmap_curr.rows () / 3;
+
+    bool *corres_flagg;
+    cudaMalloc(&corres_flagg, cols*rows*sizeof(bool));
+
+    ICPReduction icp;
+
+    icp.Rcurr = Rcurr;
+    icp.tcurr = tcurr;
+
+    icp.vmap_curr = vmap_curr;
+    icp.nmap_curr = nmap_curr;
+
+    icp.Rprev_inv = Rprev_inv;
+    icp.tprev = tprev;
+
+    icp.intr = intr;
+
+    icp.vmap_g_prev = vmap_g_prev;
+    icp.nmap_g_prev = nmap_g_prev;
+
+    icp.distThres = distThres;
+    icp.angleThres = angleThres;
+
+    icp.cols = cols;
+    icp.rows = rows;
+
+    icp.N = cols * rows;
+    icp.out = sum;
+
+
+    CheckCorresFullKernel<<<blocks, threads>>>(icp, corres_flagg);
 
     reduceSum<<<1, MAX_THREADS>>>(sum, out, blocks);
 
