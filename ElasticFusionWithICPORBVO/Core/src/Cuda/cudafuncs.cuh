@@ -119,6 +119,8 @@ void icpStepCorresMap(const mat33& Rcurr,
              int blocks);
 void GetCorresStep( const mat33& Rcurr,
                     const float3& tcurr,
+                    const mat33& Rcurr_next,
+                    const float3& tcurr_next,
                     const DeviceArray2D<float>& vmap_curr,
                     const DeviceArray2D<float>& nmap_curr,
                     const mat33& Rprev_inv,

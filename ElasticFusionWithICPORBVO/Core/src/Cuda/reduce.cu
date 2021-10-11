@@ -257,6 +257,8 @@ struct ICPReduction
 {
     mat33 Rcurr;
     float3 tcurr;
+    mat33 Rcurr_next;
+    float3 tcurr_next;
 
     PtrStep<float> vmap_curr;
     PtrStep<float> nmap_curr;
@@ -335,8 +337,9 @@ struct ICPReduction
         vcurr.y = vmap_curr.ptr (y + rows)[x];
         vcurr.z = vmap_curr.ptr (y + 2 * rows)[x];
 
-        float3 vcurr_g = Rcurr * vcurr + tcurr; //vertice global
-        float3 vcurr_cp = Rprev_inv * (vcurr_g - tprev); //vertice current
+        float3 vcurr_g = Rcurr_next * vcurr + tcurr_next; //vertice global
+        float3 vcurr_g_pre = Rcurr * vcurr + tcurr;
+        float3 vcurr_cp = Rprev_inv * (vcurr_g_pre - tprev); //vertice current
 
         int2 ukr;
         ukr.x = __float2int_rn (vcurr_cp.x * intr.fx / vcurr_cp.z + intr.cx);
@@ -355,7 +358,7 @@ struct ICPReduction
         ncurr.y = nmap_curr.ptr (y + rows)[x];
         ncurr.z = nmap_curr.ptr (y + 2 * rows)[x];
 
-        float3 ncurr_g = Rcurr * ncurr;
+        float3 ncurr_g = Rcurr_next * ncurr;
 
         float3 nprev_g;
         nprev_g.x =  __ldg(&nmap_g_prev.ptr (ukr.y)[ukr.x]);
@@ -367,6 +370,7 @@ struct ICPReduction
 
 
         return (sine < 0.1736 && dist <= inlier_thres && !isnan (ncurr.x) && !isnan (nprev_g.x));
+        //return (sine < 0.2 && dist <= inlier_thres && !isnan (ncurr.x) && !isnan (nprev_g.x));
        //return false;
     }
     __device__ __forceinline__ bool
@@ -488,7 +492,7 @@ __device__ __forceinline__ JtJJtrSE3
 
         float row[7] = {0, 0, 0, 0, 0, 0, 0};
 
-        if(corres_map[i] == 1 && found_coresp)
+        if(corres_map[i] == 1)
         {
             s_cp = Rprev_inv * (s_cp - tprev);
             d_cp = Rprev_inv * (d_cp - tprev);
@@ -533,7 +537,7 @@ __device__ __forceinline__ JtJJtrSE3
                             row[5] * row[6],
 
                             row[6] * row[6],
-                            corres_map[i] == 1 && found_coresp};
+                            corres_map[i] == 1};
 
         return values;
     }
@@ -603,7 +607,7 @@ __device__ __forceinline__ JtJJtrSE3
         for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < N; i += blockDim.x * gridDim.x)
         {   //if((i+k)%2 == 0){
                     JtJJtrSE3 val = getProducts2(i, corres_map);
-
+                    //JtJJtrSE3 val = getProducts(i);
                     sum.add(val);
 
         }
@@ -634,7 +638,7 @@ __device__ __forceinline__ JtJJtrSE3
                                     0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, ReturnCorresFull(i)};
 
-            if(ReturnCorres(i,0.05)){
+            if(ReturnCorres(i,0.06)){
                 corres_flagg[i] = true;
             }
             else{
@@ -941,6 +945,8 @@ void icpStepCorresMap(const mat33& Rcurr,
 }
 void GetCorresStep( const mat33& Rcurr,
                     const float3& tcurr,
+                    const mat33& Rcurr_next,
+                    const float3& tcurr_next,
                     const DeviceArray2D<float>& vmap_curr,
                     const DeviceArray2D<float>& nmap_curr,
                     const mat33& Rprev_inv,
@@ -970,6 +976,9 @@ void GetCorresStep( const mat33& Rcurr,
 
     icp.Rcurr = Rcurr;
     icp.tcurr = tcurr;
+
+    icp.Rcurr_next = Rcurr_next;
+    icp.tcurr_next = tcurr_next;
 
     icp.vmap_curr = vmap_curr;
     icp.nmap_curr = nmap_curr;

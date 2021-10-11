@@ -283,6 +283,8 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
     Eigen::Matrix<float, 3, 3, Eigen::RowMajor> Rcurr = Rprev;
     Eigen::Vector3f tcurr = tprev;
 
+    Eigen::Matrix<float, 3, 3, Eigen::RowMajor> Rcurr_inc;
+    Eigen::Vector3f tcurr_inc;
     if(rgb)
     {
         for(int i = 0; i < NUM_PYRS; i++)
@@ -501,7 +503,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                 }
                 */
                 if (i == 2 && (j == 0)){
-                    sample_num = 500;
+                    sample_num = 800;
                     samp_flag = true;
                 }
                 else{
@@ -594,7 +596,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                         std::cout<<"Map Check Corres: "<<all_num<<"\n";
                         std::cout<<"Inlier Check Corres: "<<inlier_check[1]<<"\n";
                         //sample const number--------------------------------
-                        int samp_point = 1000;
+                        int samp_point = 50;
                         //int samp_point = (int)all_num*0.2;
                         if (all_num>samp_point){
                             int corres_idx[all_num] = {0};
@@ -612,60 +614,66 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                                 int final_idx;
                                 idx_rand = rand()%all_num;
                                 final_idx = corres_idx[idx_rand];
-                                corres_map_out[final_idx] = 1;
-                                total++;
+                                if(corres_map_out[final_idx] == 0){
+                                    corres_map_out[final_idx] = 1;
+                                    total++;
+                                }
 
                                 //std::cout<<"final idx: "<<final_idx<<"\n";
                             }
+                            int after_all_num = 0;
+                            for(int z = 0; z<n;z++){
+                                after_all_num += corres_map_out[z];
+                            }
+                            std::cout<<"after all num:"<<after_all_num<<"\n";
                             
 
                         
-                        icpStepCorresMap(   
-                                    device_Rcurr,
-                                    device_tcurr,
-                                    vmap_curr,
-                                    nmap_curr,
-                                    device_Rprev_inv,
-                                    device_tprev,
-                                    intr(i),
-                                    vmap_g_prev,
-                                    nmap_g_prev,
-                                    distThres_,
-                                    angleThres_,
-                                    sumDataSE3cp,
-                                    outDataSE3cp,
-                                    A_icp.data(),
-                                    b_icp.data(),
-                                    &residual[0],
-                                    &corres_map_out[0],
-                                    GPUConfig::getInstance().icpStepThreads,
-                                    GPUConfig::getInstance().icpStepBlocks
-                                    );
+                            icpStepCorresMap(   
+                                        device_Rcurr,
+                                        device_tcurr,
+                                        vmap_curr,
+                                        nmap_curr,
+                                        device_Rprev_inv,
+                                        device_tprev,
+                                        intr(i),
+                                        vmap_g_prev,
+                                        nmap_g_prev,
+                                        distThres_,
+                                        angleThres_,
+                                        sumDataSE3cp,
+                                        outDataSE3cp,
+                                        A_icp.data(),
+                                        b_icp.data(),
+                                        &residual[0],
+                                        &corres_map_out[0],
+                                        GPUConfig::getInstance().icpStepThreads,
+                                        GPUConfig::getInstance().icpStepBlocks
+                                        );
                         }
                         else{
                             std::cout<<"Too Less~~ Pass!!!!\n\n";
                             sample_num = 1;
-                            icpStepCorresMap(   
-                                    device_Rcurr,
-                                    device_tcurr,
-                                    vmap_curr,
-                                    nmap_curr,
-                                    device_Rprev_inv,
-                                    device_tprev,
-                                    intr(i),
-                                    vmap_g_prev,
-                                    nmap_g_prev,
-                                    distThres_,
-                                    angleThres_,
-                                    sumDataSE3cp,
-                                    outDataSE3cp,
-                                    A_icp.data(),
-                                    b_icp.data(),
-                                    &residual[0],
-                                    &corres_map[0],
-                                    GPUConfig::getInstance().icpStepThreads,
-                                    GPUConfig::getInstance().icpStepBlocks
-                                    );
+                            samp_flag = false;
+                            icpStep(device_Rcurr,
+                                device_tcurr,
+                                vmap_curr,
+                                nmap_curr,
+                                device_Rprev_inv,
+                                device_tprev,
+                                intr(i),
+                                vmap_g_prev,
+                                nmap_g_prev,
+                                distThres_,
+                                angleThres_,
+                                sumDataSE3,
+                                outDataSE3,
+                                A_icp.data(),
+                                b_icp.data(),
+                                &residual[0],
+                                GPUConfig::getInstance().icpStepThreads,
+                                GPUConfig::getInstance().icpStepBlocks
+                                );
                             std::cout<<"too less sample num: "<<residual[1]<<"\n";
                         } 
                     }
@@ -733,9 +741,12 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                 currentT.translation() = tprev;
 
                 currentT = currentT * rgbOdom.inverse();
-
+            
                 tcurr = currentT.translation();
                 Rcurr = currentT.rotation();
+
+                //tcurr = tcurr_inc + tcurr;
+                //Rcurr = Rcurr_inc * Rcurr;
                 //std::cout<<"task "<<k<<" : \n"<< Rcurr <<std::endl;
                 euler_angles[k] = Rcurr.eulerAngles(2,1,0);
                 trans[k] = tcurr;
@@ -745,9 +756,11 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                 mat33 device_Rcurr_tmp = Rcurr;
                 float3 device_tcurr_tmp = *reinterpret_cast<float3*>(tcurr.data());
                 float inlier2[2] = {0,0};
-                char corres_flag[vmap_curr.cols()*vmap_curr.rows()/3];
+                char corres_flag[vmap_curr.cols()*vmap_curr.rows()/3] = {0};
                 if(samp_flag){
-                    GetCorresStep(  device_Rcurr_tmp,
+                    GetCorresStep(  device_Rcurr,
+                                    device_tcurr,
+                                    device_Rcurr_tmp,
                                     device_tcurr_tmp,
                                     vmap_curr,
                                     nmap_curr,
@@ -779,6 +792,27 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                     std::cout<<"inlier :"<<inlier2[1]<<"\n";
                     std::cout<<"inlier ratio:"<<all_num/inlier2[1]<<"\n";
                     inlier_ratio_all[k] = inlier_ratio;
+                    //sample number calculate
+                    if(samp_flag){ 
+                        int sample_num_update = sample_num;
+                        sample_num_update = std::log10(1-0.95)/std::log10(1-std::pow(all_num/inlier2[1], 25));
+                        if(sample_num_update<sample_num && sample_num_update>0){
+                            std::cout<<"sample num update:"<<sample_num_update<<"\n";
+                            //sample_num = sample_num_update;
+                        }
+                        /*
+                        else if(sample_num_update>sample_num){
+                            std::cout<<"sample num update:"<<sample_num_update<<"\n";
+                            if(sample_num_update<850){
+                                sample_num = sample_num_update;
+                            }
+                            else{
+                                sample_num = 1200;
+                            }
+                        }
+                        */
+                    }
+
                 }
                 /*
                 for(int af = 0;af<120*160;af++){
@@ -830,7 +864,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             //get rid of outlier pose end
             rotAll = euler_angles[0];
             transAll = trans[0];
-            result = result_all[0];
+            //result = result_all[0];
             /*
             if (i == 0){
                 rotAll = euler_angles[0];
@@ -853,8 +887,8 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             * Eigen::AngleAxisf(rotAll.transpose()[2], Eigen::Vector3f::UnitX());
             //std::cout<<"task back : "<< resultA <<std::endl;
 
-            tcurr = transAll;
-            Rcurr = resultA;
+            //tcurr = transAll;
+            //Rcurr = resultA;
             if(samp_flag){
 
                 Eigen::Matrix<float, 6, 6, Eigen::RowMajor> A_icp;
@@ -862,10 +896,14 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                 
 
                 mat33 device_Rcurr_tmp = resultA;
-                char corres_flag[vmap_curr.cols()*vmap_curr.rows()/3];
+                char corres_flag[vmap_curr.cols()*vmap_curr.rows()/3] = {0};
+
                 float3 device_tcurr_tmp = *reinterpret_cast<float3*>(transAll.data());
+                
                 float residual[2] = {0,0};
-                GetCorresStep(          device_Rcurr_tmp,
+                GetCorresStep(          device_Rcurr,
+                                        device_tcurr,
+                                        device_Rcurr_tmp,
                                         device_tcurr_tmp,
                                         vmap_curr,
                                         nmap_curr,
