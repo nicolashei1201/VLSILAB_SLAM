@@ -369,7 +369,7 @@ struct ICPReduction
         float sine = norm (cross (ncurr_g, nprev_g));
 
 
-        return (sine < 0.1736 && dist <= inlier_thres && !isnan (ncurr.x) && !isnan (nprev_g.x));
+        return (sine < 0.088 && dist <= inlier_thres && !isnan (ncurr.x) && !isnan (nprev_g.x));
         //return (sine < 0.2 && dist <= inlier_thres && !isnan (ncurr.x) && !isnan (nprev_g.x));
        //return false;
     }
@@ -638,7 +638,7 @@ __device__ __forceinline__ JtJJtrSE3
                                     0, 0, 0, 0, 0, 0, 0, 0,
                                     0, 0, 0, 0, ReturnCorresFull(i)};
 
-            if(ReturnCorres(i,0.06)){
+            if(ReturnCorres(i,0.05)){
                 corres_flagg[i] = true;
             }
             else{

@@ -596,7 +596,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                         std::cout<<"Map Check Corres: "<<all_num<<"\n";
                         std::cout<<"Inlier Check Corres: "<<inlier_check[1]<<"\n";
                         //sample const number--------------------------------
-                        int samp_point = 50;
+                        int samp_point = 25;
                         //int samp_point = (int)all_num*0.2;
                         if (all_num>samp_point){
                             int corres_idx[all_num] = {0};
