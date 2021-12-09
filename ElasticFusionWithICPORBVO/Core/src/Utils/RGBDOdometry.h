@@ -31,6 +31,8 @@
 class RGBDOdometry
 {
     public:
+        int8_t corres_maps[640*480];
+
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         RGBDOdometry(int width,
                      int height,
@@ -82,6 +84,7 @@ class RGBDOdometry
         DeviceArray<float> vmaps_tmp;
         DeviceArray<float> nmaps_tmp;
 
+        
 
         std::vector<DeviceArray2D<float> > vmaps_g_prev_;
         std::vector<DeviceArray2D<float> > nmaps_g_prev_;

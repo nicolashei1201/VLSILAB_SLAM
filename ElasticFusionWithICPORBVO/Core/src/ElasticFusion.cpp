@@ -365,6 +365,7 @@ void ElasticFusion::processFrame(const unsigned char * rgb,
             Eigen::Matrix<float, 3, 3, Eigen::RowMajor> rot = currPose.topLeftCorner(3, 3);
 
             TICK("odom");
+            std::cout<<"start!!!!!\n";
             frameToModel.getIncrementalTransformation(trans,
                                                       rot,
                                                       rgbOnly,
@@ -373,7 +374,22 @@ void ElasticFusion::processFrame(const unsigned char * rgb,
                                                       fastOdom,
                                                       so3);
             TOCK("odom");
+            std::cout<<"CORRES MAP:\n";
 
+            cv::Mat A(120, 160, CV_8UC1);
+            for (int y = 0;y<120;y++){
+                for(int x = 0;x<160;x++){
+                    A.at<uchar>(y,x,0) = (uchar)frameToModel.corres_maps[160*y + x]*255;
+                    
+                    //A.at<int>(cv::Point(x,y)) = 255;
+                    //std::cout<<160*y + x<<"\n";
+                    //std::cout<<"A:"<<A.at<int>(cv::Point(x,y));
+                    //std::cout<<(uint8_t)frameToModel.corres_map[160*y + x]*255<<",";
+                }
+            }
+            cv::namedWindow( "Reliability Map", cv::WINDOW_NORMAL);
+            cv::imshow("Reliability Map", A);
+            cv::waitKey(1);
             trackingOk = !reloc || frameToModel.lastICPError < 1e-04;
 
             if(reloc)

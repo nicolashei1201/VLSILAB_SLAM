@@ -369,8 +369,8 @@ struct ICPReduction
         float sine = norm (cross (ncurr_g, nprev_g));
 
 
-        return (sine < 0.088 && dist <= inlier_thres && !isnan (ncurr.x) && !isnan (nprev_g.x));
-        //return (sine < 0.2 && dist <= inlier_thres && !isnan (ncurr.x) && !isnan (nprev_g.x));
+        //return (sine < 0.088 && dist <= inlier_thres && !isnan (ncurr.x) && !isnan (nprev_g.x));
+        return (sine < 0.2 && dist <= inlier_thres && !isnan (ncurr.x) && !isnan (nprev_g.x));
        //return false;
     }
     __device__ __forceinline__ bool
@@ -606,9 +606,12 @@ __device__ __forceinline__ JtJJtrSE3
 
         for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < N; i += blockDim.x * gridDim.x)
         {   //if((i+k)%2 == 0){
-                    JtJJtrSE3 val = getProducts2(i, corres_map);
-                    //JtJJtrSE3 val = getProducts(i);
-                    sum.add(val);
+                    //JtJJtrSE3 val = getProducts2(i, corres_map);
+                    JtJJtrSE3 val = getProducts(i);
+                    if(corres_map[i] == 1){
+                        sum.add(val);
+                    }
+                    //sum.add(val);
 
         }
         sum = blockReduceSum(sum);
@@ -1231,11 +1234,41 @@ struct RGBReduction
             out[blockIdx.x] = sum;
         }
     }
+    __device__ __forceinline__ void
+    operator () (char* corres_map) const
+    {
+        JtJJtrSE3 sum = {0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0};
+
+        for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < N; i += blockDim.x * gridDim.x)
+        {
+            JtJJtrSE3 val = getProducts(i);
+            if(corres_map[i]==1){
+                
+
+                sum.add(val);
+            }
+            //sum.add(val);
+        }
+
+        sum = blockReduceSum(sum);
+
+        if(threadIdx.x == 0)
+        {
+            out[blockIdx.x] = sum;
+        }
+    }
 };
 
 __global__ void rgbKernel (const RGBReduction rgb)
 {
     rgb();
+}
+__global__ void rgbKernelCorresMap (const RGBReduction rgb, char* corres_map)
+{
+    rgb(corres_map);
 }
 
 void rgbStep(const DeviceArray2D<DataTerm> & corresImg,
@@ -1290,6 +1323,68 @@ void rgbStep(const DeviceArray2D<DataTerm> & corresImg,
                 matrixA_host[j * 6 + i] = matrixA_host[i * 6 + j] = value;
         }
     }
+}
+void rgbStepCorresMap(const DeviceArray2D<DataTerm> & corresImg,
+             const float & sigma,
+             const DeviceArray2D<float3> & cloud,
+             const float & fx,
+             const float & fy,
+             const DeviceArray2D<short> & dIdx,
+             const DeviceArray2D<short> & dIdy,
+             const float & sobelScale,
+             DeviceArray<JtJJtrSE3> & sum,
+             DeviceArray<JtJJtrSE3> & out,
+             float * matrixA_host,
+             float * vectorB_host,
+             char * corres_map,
+             int threads,
+             int blocks)
+{
+    RGBReduction rgb;
+
+    rgb.corresImg = corresImg;
+    rgb.cols = corresImg.cols();
+    rgb.rows = corresImg.rows();
+    rgb.sigma = sigma;
+    rgb.cloud = cloud;
+    rgb.fx = fx;
+    rgb.fy = fy;
+    rgb.dIdx = dIdx;
+    rgb.dIdy = dIdy;
+    rgb.sobelScale = sobelScale;
+    rgb.N = rgb.cols * rgb.rows;
+    rgb.out = sum;
+
+    int N = rgb.N;
+    char *corres_flagg;
+    
+    cudaMalloc((void**)&corres_flagg, N*sizeof(char));
+    cudaMemcpy(corres_flagg, &corres_map[0], N*sizeof(char), cudaMemcpyHostToDevice);
+
+    rgbKernelCorresMap<<<blocks, threads>>>(rgb,corres_flagg);
+
+    reduceSum<<<1, MAX_THREADS>>>(sum, out, blocks);
+
+    cudaSafeCall(cudaGetLastError());
+    cudaSafeCall(cudaDeviceSynchronize());
+
+    float host_data[32];
+    out.download((JtJJtrSE3 *)&host_data[0]);
+
+    int shift = 0;
+    for (int i = 0; i < 6; ++i)
+    {
+        for (int j = i; j < 7; ++j)
+        {
+            float value = host_data[shift++];
+            if (j == 6)
+                vectorB_host[i] = value;
+            else
+                matrixA_host[j * 6 + i] = matrixA_host[i * 6 + j] = value;
+        }
+    }
+
+    cudaFree( corres_flagg );
 }
 
 __inline__  __device__ int2 warpReduceSum(int2 val)

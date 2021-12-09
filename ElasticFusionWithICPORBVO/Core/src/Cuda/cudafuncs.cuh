@@ -171,7 +171,22 @@ void rgbStep(const DeviceArray2D<DataTerm> & corresImg,
              float * vectorB_host,
              int threads,
              int blocks);
-
+void rgbStepCorresMap(const DeviceArray2D<DataTerm> & corresImg,
+             const float & sigma,
+             const DeviceArray2D<float3> & cloud,
+             const float & fx,
+             const float & fy,
+             const DeviceArray2D<short> & dIdx,
+             const DeviceArray2D<short> & dIdy,
+             const float & sobelScale,
+             DeviceArray<JtJJtrSE3> & sum,
+             DeviceArray<JtJJtrSE3> & out,
+             float * matrixA_host,
+             float * vectorB_host,
+             char * corres_map,
+             int threads,
+             int blocks);
+             
 void so3Step(const DeviceArray2D<unsigned char> & lastImage,
              const DeviceArray2D<unsigned char> & nextImage,
              const mat33 & imageBasis,
