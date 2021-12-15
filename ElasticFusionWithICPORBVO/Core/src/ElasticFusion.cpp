@@ -379,10 +379,12 @@ void ElasticFusion::processFrame(const unsigned char * rgb,
             cv::Mat A(120, 160, CV_8UC1);
             for (int y = 0;y<120;y++){
                 for(int x = 0;x<160;x++){
-                    A.at<uchar>(y,x,0) = (uchar)frameToModel.corres_maps[160*y + x]*255;
+                    A.at<uchar>(y,x) = (uchar)frameToModel.corres_maps[160*y + x]*85;
                     
-                    //A.at<int>(cv::Point(x,y)) = 255;
-                    //std::cout<<160*y + x<<"\n";
+                    if((int)frameToModel.corres_maps[160*y + x] == 1){
+                    std::cout<<(int)frameToModel.corres_maps[160*y + x]<<"\n\n\n\n";
+                    //A.at<uchar>(y,x,1) = (uchar)frameToModel.corres_maps[160*y + x]*125;
+                    }
                     //std::cout<<"A:"<<A.at<int>(cv::Point(x,y));
                     //std::cout<<(uint8_t)frameToModel.corres_map[160*y + x]*255<<",";
                 }

@@ -149,6 +149,43 @@ struct JtJJtrSE3
         residual += a.residual;
         inliers += a.inliers;
     }
+
+    __device__ inline void mul(float number)
+    {
+        aa *= number;
+        ab *= number;
+        ac *= number;
+        ad *= number;
+        ae *= number;
+        af *= number;
+        ag *= number;
+
+        bb *= number;
+        bc *= number;
+        bd *= number;
+        be *= number;
+        bf *= number;
+        bg *= number;
+
+        cc *= number;
+        cd *= number;
+        ce *= number;
+        cf *= number;
+        cg *= number;
+
+        dd *= number;
+        de *= number;
+        df *= number;
+        dg *= number;
+
+        ee *= number;
+        ef *= number;
+        eg *= number;
+
+        ff *= number;
+        fg *= number;
+
+    }
 };
 
 struct JtJJtrSO3

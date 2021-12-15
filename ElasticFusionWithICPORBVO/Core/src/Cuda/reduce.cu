@@ -608,8 +608,30 @@ __device__ __forceinline__ JtJJtrSE3
         {   //if((i+k)%2 == 0){
                     //JtJJtrSE3 val = getProducts2(i, corres_map);
                     JtJJtrSE3 val = getProducts(i);
-                    if(corres_map[i] == 1){
-                        sum.add(val);
+                    if(corres_map[i] != 0){
+                        /*
+                        for (int a = 0; a<corres_map[i]; a++){
+                            val.mul(0.3);
+                            sum.add(val);
+                        }
+                        */
+                       //val.mul((float)corres_map[i]/3);
+                       //sum.add(val);
+                       
+                       if(corres_map[i] == 1){
+                           val.mul(1);
+                           sum.add(val);
+                       }
+                       else if (corres_map[i] == 2){
+                           val.mul(1.2);
+                           sum.add(val);
+                       }
+                       else{
+                            val.mul(1.5);
+                            sum.add(val);
+                       }
+                       
+                        
                     }
                     //sum.add(val);
 
@@ -1245,10 +1267,29 @@ struct RGBReduction
         for(int i = blockIdx.x * blockDim.x + threadIdx.x; i < N; i += blockDim.x * gridDim.x)
         {
             JtJJtrSE3 val = getProducts(i);
-            if(corres_map[i]==1){
-                
+            if(corres_map[i] != 0){
 
-                sum.add(val);
+                /*
+                for (int a = 0; a<corres_map[i]; a++){
+                    val.mul(0.3);
+                    sum.add(val);
+                }
+                */
+                //val.mul((float)corres_map[i]/3);
+                //sum.add(val);
+                
+                if(corres_map[i] == 1){
+                    val.mul(1);
+                    sum.add(val);
+                }
+                else if (corres_map[i] == 2){
+                    val.mul(1.2);
+                    sum.add(val);
+                }
+                else{
+                    val.mul(1.5);
+                    sum.add(val);
+                }
             }
             //sum.add(val);
         }

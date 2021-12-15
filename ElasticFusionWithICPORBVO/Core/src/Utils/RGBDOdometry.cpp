@@ -503,7 +503,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                 }
                 */
                 if ((i == 2 || i == 1) && (j == 0)){
-                    sample_num = 500;
+                    sample_num = 50;
                     samp_flag = true;
                 }
                 else{
@@ -594,10 +594,11 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                         int all_num = 0;
                         for(int z = 0; z<n;z++){
                             all_num += corres_map[z];
-
+                            /*
                              if(i == 2){
                                 corres_maps[z] = corres_map[z];
                             }
+                            */
                         }
                         std::cout<<"Map Check Corres: "<<all_num<<"\n";
                         std::cout<<"Inlier Check Corres: "<<inlier_check[1]<<"\n";
@@ -839,8 +840,13 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             //std::cout<<"task eular "<<0<<" : "<< euler_angles[0].transpose() <<std::endl;
             Eigen::Vector3f rotAll(0,0,0);
             Eigen::Vector3f transAll(0,0,0);
-            //Eigen::Vector3f rotTmp(0,0,0);
-            //Eigen::Vector3f transTmp(0,0,0);
+
+            Eigen::Vector3f rotAll2(0,0,0);
+            Eigen::Vector3f transAll2(0,0,0);
+
+            Eigen::Vector3f rotAll3(0,0,0);
+            Eigen::Vector3f transAll3(0,0,0);
+
 
             //float inlier_ratio_tmp;
             //get rid of outlier pose
@@ -868,14 +874,20 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                         Eigen::Matrix<double, 6, 1> result_tmp = result_all[s];
                         result_all[s] = result_all[s + 1];
                         result_all[s + 1] = result_all[s];
-
                     }
                 }
 
             }
+
             //get rid of outlier pose end
             rotAll = euler_angles[0];
             transAll = trans[0];
+
+            rotAll2 = euler_angles[1];
+            transAll2 = trans[1];
+
+            rotAll3 = euler_angles[2];
+            transAll3 = trans[2];
             //result = result_all[0];
             /*
             if (i == 0){
@@ -897,22 +909,65 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             resultA = Eigen::AngleAxisf(rotAll.transpose()[0], Eigen::Vector3f::UnitZ())
             * Eigen::AngleAxisf(rotAll.transpose()[1], Eigen::Vector3f::UnitY())
             * Eigen::AngleAxisf(rotAll.transpose()[2], Eigen::Vector3f::UnitX());
-            //std::cout<<"task back : "<< resultA <<std::endl;
+            
+            Eigen::Matrix<float, 3, 3, 1> resultA2;
 
-            //tcurr = transAll;
-            //Rcurr = resultA;
+            resultA2 = Eigen::AngleAxisf(rotAll2.transpose()[0], Eigen::Vector3f::UnitZ())
+            * Eigen::AngleAxisf(rotAll2.transpose()[1], Eigen::Vector3f::UnitY())
+            * Eigen::AngleAxisf(rotAll2.transpose()[2], Eigen::Vector3f::UnitX());
+            
+            Eigen::Matrix<float, 3, 3, 1> resultA3;
+            resultA3 = Eigen::AngleAxisf(rotAll3.transpose()[0], Eigen::Vector3f::UnitZ())
+            * Eigen::AngleAxisf(rotAll3.transpose()[1], Eigen::Vector3f::UnitY())
+            * Eigen::AngleAxisf(rotAll3.transpose()[2], Eigen::Vector3f::UnitX());
+            
             if(samp_flag){
 
+
                 Eigen::Matrix<float, 6, 6, Eigen::RowMajor> A_icp;
-                Eigen::Matrix<float, 6, 1> b_icp;;
-                
+                Eigen::Matrix<float, 6, 1> b_icp;
+
 
                 mat33 device_Rcurr_tmp = resultA;
-                char corres_flag[vmap_curr.cols()*vmap_curr.rows()/3] = {0};
+                mat33 device_Rcurr_tmp2 = resultA2;
+                mat33 device_Rcurr_tmp3 = resultA3;
+
+                char corres_flag[vmap_curr.cols()*vmap_curr.rows()/3];
+                char corres_flag2[vmap_curr.cols()*vmap_curr.rows()/3];
+                char corres_flag3[vmap_curr.cols()*vmap_curr.rows()/3];
+
+                //char corres_flag3[vmap_curr.cols()*vmap_curr.rows()/3] = {0};
+
 
                 float3 device_tcurr_tmp = *reinterpret_cast<float3*>(transAll.data());
-                
+                float3 device_tcurr_tmp2 = *reinterpret_cast<float3*>(transAll2.data());
+                float3 device_tcurr_tmp3 = *reinterpret_cast<float3*>(transAll2.data());
+
                 float residual[2] = {0,0};
+                                    
+                GetCorresStep(          device_Rcurr,
+                                        device_tcurr,
+                                        device_Rcurr_tmp2,
+                                        device_tcurr_tmp2,
+                                        vmap_curr,
+                                        nmap_curr,
+                                        device_Rprev_inv,
+                                        device_tprev,
+                                        intr(i),
+                                        vmap_g_prev,
+                                        nmap_g_prev,
+                                        distThres_,
+                                        angleThres_,
+                                        sumDataSE3cp,
+                                        outDataSE3cp,
+                                        A_icp.data(),
+                                        b_icp.data(),
+                                        &residual[0],
+                                        &corres_flag2[0],
+                                        GPUConfig::getInstance().icpStepThreads,
+                                        GPUConfig::getInstance().icpStepBlocks
+                                        );
+                
                 GetCorresStep(          device_Rcurr,
                                         device_tcurr,
                                         device_Rcurr_tmp,
@@ -935,16 +990,40 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                                         GPUConfig::getInstance().icpStepThreads,
                                         GPUConfig::getInstance().icpStepBlocks
                                         );
+                GetCorresStep(          device_Rcurr,
+                                        device_tcurr,
+                                        device_Rcurr_tmp3,
+                                        device_tcurr_tmp3,
+                                        vmap_curr,
+                                        nmap_curr,
+                                        device_Rprev_inv,
+                                        device_tprev,
+                                        intr(i),
+                                        vmap_g_prev,
+                                        nmap_g_prev,
+                                        distThres_,
+                                        angleThres_,
+                                        sumDataSE3cp,
+                                        outDataSE3cp,
+                                        A_icp.data(),
+                                        b_icp.data(),
+                                        &residual[0],
+                                        &corres_flag3[0],
+                                        GPUConfig::getInstance().icpStepThreads,
+                                        GPUConfig::getInstance().icpStepBlocks
+                                        );
+                
                 int n = sizeof(corres_flag)/sizeof(corres_flag[0]);
                 int all_num = 0;
 
                 for(int z = 0; z<n;z++){
                     all_num += corres_flag[z];
-                    /*
+                    
                     if(i == 2){
-                        corres_map[z] = corres_flag[z];
+                        corres_maps[z] = corres_flag[z] + corres_flag2[z] + corres_flag3[z];
                     }
-                    */
+                    corres_flag[z] += (corres_flag2[z] + corres_flag3[z]);
+                    
                 }  
 
                 std::cout<<"all corres num: "<<all_num<<"\n";
@@ -1051,7 +1130,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             }
 
             Eigen::Isometry3f rgbOdom;
-            OdometryProvider::computeUpdateSE3(resultRt, result);
+            OdometryProvider::computeUpdateSE3Real(resultRt, result, rgbOdom);
 
             Eigen::Isometry3f currentT;
             currentT.setIdentity();
