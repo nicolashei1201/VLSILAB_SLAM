@@ -503,7 +503,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
                 }
                 */
                 if ((i == 2 || i == 1) && (j == 0)){
-                    sample_num = 500;
+                    sample_num = 50;
                     samp_flag = true;
                 }
                 else{
@@ -1051,7 +1051,7 @@ void RGBDOdometry::getIncrementalTransformation(Eigen::Vector3f & trans,
             }
 
             Eigen::Isometry3f rgbOdom;
-            OdometryProvider::computeUpdateSE3(resultRt, result);
+            OdometryProvider::computeUpdateSE3Real(resultRt, result, rgbOdom);
 
             Eigen::Isometry3f currentT;
             currentT.setIdentity();
