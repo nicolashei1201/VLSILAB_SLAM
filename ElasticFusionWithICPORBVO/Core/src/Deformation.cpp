@@ -27,6 +27,7 @@ Deformation::Deformation()
    count(0),
    vertices(new Eigen::Vector4f[bufferSize]),
    graphPosePoints(new std::vector<Eigen::Vector3f>),
+   ReliablePoints(new std::vector<Eigen::Vector3f>),
    lastDeformTime(0)
 {
     //x, y, z and init time
@@ -252,10 +253,94 @@ void Deformation::sampleGraphFrom(Deformation & other)
     }
 }
 
+
 void Deformation::sampleGraphModel(const std::pair<GLuint, GLuint> & model)
 {
     sampleProgram->Bind();
-    //std::cout<<"model second : "<<model.second<<std::endl;
+    glBindBuffer(GL_ARRAY_BUFFER, model.first);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, Vertex::SIZE, 0);
+
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, Vertex::SIZE, reinterpret_cast<GLvoid*>(sizeof(Eigen::Vector4f)));
+
+    glEnableVertexAttribArray(2);
+    glVertexAttribPointer(2, 4, GL_FLOAT, GL_FALSE, Vertex::SIZE, reinterpret_cast<GLvoid*>(sizeof(Eigen::Vector4f) * 2));
+
+    glEnable(GL_RASTERIZER_DISCARD);
+
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, fid);
+
+    glBindBufferBase(GL_TRANSFORM_FEEDBACK_BUFFER, 0, vbo);
+
+    glBeginQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN, countQuery);
+
+    glBeginTransformFeedback(GL_POINTS);
+
+    glDrawTransformFeedback(GL_POINTS, model.second);
+
+    glEndTransformFeedback();
+
+    glEndQuery(GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN);
+
+    glGetQueryObjectuiv(countQuery, GL_QUERY_RESULT, &count);
+
+    glDisable(GL_RASTERIZER_DISCARD);
+
+    glBindTransformFeedback(GL_TRANSFORM_FEEDBACK, 0);
+
+    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(1);
+    glDisableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    sampleProgram->Unbind();
+
+    glFinish();
+    std::cout<<"k :"<<def.k<<std::endl;
+    std::cout<<"count: "<<count<<std::endl;
+    //if((int)count > 4)
+    if((int)count > def.k)
+    {
+        glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+        glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Eigen::Vector4f) * count, vertices);
+
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        for(size_t i = 0; i < count; i++)
+        {
+            Eigen::Vector3f newPoint = vertices[i].head<3>();
+
+            //std::cout<<"newPoint:"<<newPoint<<"\n";
+
+           graphPosePoints->push_back(newPoint);
+
+            //std::cout<<"init time: "<<vertices[i](3)<<std::endl;
+
+            if(i > 0 && vertices[i](3) < graphPoseTimes.back())
+            {
+                assert(false && "Assumption failed");
+            }
+
+            graphPoseTimes.push_back(vertices[i](3)); 
+        }
+        //Eigen::Vector3f goodPoint;
+        //goodPoint = ReliablePoints->at(0);
+        //std::cout<<"newPoint:"<<goodPoint<<"\n";
+        def.initialiseGraph(graphPosePoints, &graphPoseTimes);
+
+        graphPoseTimes.clear();
+        graphPosePoints->clear();
+        ReliablePoints->clear();
+    }
+
+}
+
+void Deformation::sampleGraphModelGoodPoints(const std::pair<GLuint, GLuint> & model)
+{
+    sampleProgram->Bind();
     glBindBuffer(GL_ARRAY_BUFFER, model.first);
 
     glEnableVertexAttribArray(0);
@@ -300,20 +385,21 @@ void Deformation::sampleGraphModel(const std::pair<GLuint, GLuint> & model)
     std::cout<<"k :"<<def.k<<std::endl;
     std::cout<<"count: "<<count<<std::endl;
     //if((int)count > 4)  
+    //std::cout<<"Point:"<<ReliablePoints->at(1)<<"\n";
+    
     if((int)count > def.k)
     {
-        glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-        glGetBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(Eigen::Vector4f) * count, vertices);
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
+        
         for(size_t i = 0; i < count; i++)
         {
             Eigen::Vector3f newPoint = vertices[i].head<3>();
+            
+            
 
             graphPosePoints->push_back(newPoint);
-
+            std::cout<<"Point: "<<newPoint<<"\n";
             //std::cout<<"init time: "<<vertices[i](3)<<std::endl;
 
             if(i > 0 && vertices[i](3) < graphPoseTimes.back())
@@ -323,10 +409,32 @@ void Deformation::sampleGraphModel(const std::pair<GLuint, GLuint> & model)
 
             graphPoseTimes.push_back(vertices[i](3));
         }
+        
+       /*
+       for(size_t i = 0; i < ReliablePoints.size(); i++)
+       {
+            if(i%1000 == 0){
+                graphPosePoints->push_back(ReliablePoints[i]);
+                graphPoseTimes.push_back(1);
+            }
+       }
+       */
+        //graphPosePoints->push_back(ReliablePoints[0]);
+        //graphPoseTimes.push_back(1);
 
         def.initialiseGraph(graphPosePoints, &graphPoseTimes);
-
         graphPoseTimes.clear();
         graphPosePoints->clear();
+        ReliablePoints->clear();
     }
+    
+}
+
+void Deformation::addReliablePoint(Eigen::Vector3f Point){
+    ReliablePoints->push_back(Point);
+
+    graphPosePoints->push_back(Point);
+    graphPoseTimes.push_back(1);
+
+    std::cout<<"Pointtt: "<<ReliablePoints->size()<<"\n";
 }

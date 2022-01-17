@@ -34,6 +34,8 @@
 class Deformation
 {
     public:
+        
+
         Deformation();
         virtual ~Deformation();
 
@@ -42,8 +44,10 @@ class Deformation
         void getRawGraph(std::vector<float> & graph);
 
         void sampleGraphModel(const std::pair<GLuint, GLuint> & model);
+        void sampleGraphModelGoodPoints(const std::pair<GLuint, GLuint> & model);
 
         void sampleGraphFrom(Deformation & other);
+        
 
         class Constraint
         {
@@ -81,7 +85,7 @@ class Deformation
                            const bool pinConstraints);
 
         void addConstraint(const Constraint & constraint);
-
+        void addReliablePoint(Eigen::Vector3f Point);
         bool constrain(std::vector<Ferns::Frame*> & ferns,
                        std::vector<float> & rawGraph,
                        int time,
@@ -123,7 +127,9 @@ class Deformation
 
         std::vector<std::pair<uint64_t, Eigen::Vector3f> > poseGraphPoints;
         std::vector<unsigned long long int> graphPoseTimes;
+
         std::vector<Eigen::Vector3f> * graphPosePoints;
+        std::vector<Eigen::Vector3f> * ReliablePoints;
 
         std::vector<Constraint> constraints;
         int lastDeformTime;

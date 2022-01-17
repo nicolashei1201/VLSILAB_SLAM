@@ -32,7 +32,8 @@ class RGBDOdometry
 {
     public:
         int8_t corres_maps[640*480];
-
+        float3 PointCloudNew[640*480];
+        //std::vector<float3> PointCloudNew;
         EIGEN_MAKE_ALIGNED_OPERATOR_NEW
         RGBDOdometry(int width,
                      int height,
@@ -55,6 +56,13 @@ class RGBDOdometry
         void initFirstRGB(GPUTexture * rgb);
 
         void getIncrementalTransformation(Eigen::Vector3f & trans,
+                                          Eigen::Matrix<float, 3, 3, Eigen::RowMajor> & rot,
+                                          const bool & rgbOnly,
+                                          const float & icpWeight,
+                                          const bool & pyramid,
+                                          const bool & fastOdom,
+                                          const bool & so3);
+        void getIncrementalTransformationRANSAC(Eigen::Vector3f & trans,
                                           Eigen::Matrix<float, 3, 3, Eigen::RowMajor> & rot,
                                           const bool & rgbOnly,
                                           const float & icpWeight,
@@ -128,6 +136,7 @@ class RGBDOdometry
         DeviceArray2D<DataTerm> corresImg[NUM_PYRS];
 
         DeviceArray2D<float3> pointClouds[NUM_PYRS];
+        DeviceArray2D<float3> pointCloudsNext[NUM_PYRS];
 
         std::vector<int> iterations;
         std::vector<float> minimumGradientMagnitudes;

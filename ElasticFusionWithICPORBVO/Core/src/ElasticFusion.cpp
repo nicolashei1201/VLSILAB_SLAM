@@ -278,6 +278,8 @@ void ElasticFusion::processFrame(const unsigned char * rgb,
     
     std::cout<<"timestamp : "<<timestamp<<std::endl;
     TICK("Run");
+    //std::vector<Eigen::Vector3f> ReliablePoint;
+    std::vector<Eigen::Vector3f> * ReliablePoint = new std::vector<Eigen::Vector3f>;
     textures[GPUTexture::DEPTH_RAW]->texture->Upload(depth, GL_LUMINANCE_INTEGER_EXT, GL_UNSIGNED_SHORT);
     textures[GPUTexture::RGB]->texture->Upload(rgb, GL_RGB, GL_UNSIGNED_BYTE);
 
@@ -366,7 +368,7 @@ void ElasticFusion::processFrame(const unsigned char * rgb,
 
             TICK("odom");
             std::cout<<"start!!!!!\n";
-            frameToModel.getIncrementalTransformation(trans,
+            frameToModel.getIncrementalTransformationRANSAC(trans,
                                                       rot,
                                                       rgbOnly,
                                                       icpWeight,
@@ -374,21 +376,43 @@ void ElasticFusion::processFrame(const unsigned char * rgb,
                                                       fastOdom,
                                                       so3);
             TOCK("odom");
-            std::cout<<"CORRES MAP:\n";
+            //std::cout<<"CORRES MAP:\n";
 
             cv::Mat A(120, 160, CV_8UC1);
+            int div = 0;
             for (int y = 0;y<120;y++){
                 for(int x = 0;x<160;x++){
                     A.at<uchar>(y,x) = (uchar)frameToModel.corres_maps[160*y + x]*85;
                     
-                    if((int)frameToModel.corres_maps[160*y + x] == 1){
-                    std::cout<<(int)frameToModel.corres_maps[160*y + x]<<"\n\n\n\n";
+                    if((int)frameToModel.corres_maps[160*y + x] > 1){
+                        div++;
+                        
+                        float3 point = frameToModel.PointCloudNew[160*y + x]; 
+                        Eigen::Vector4f Point(point.x, point.y, point.z, 1.0f);
+                        
+                        if(div%100 == 0){
+                            //Point = Point * currPose.topLeftCorner(3, 3).inverse();
+                            //Point = Point - currPose.topRightCorner(3, 1);
+                            Eigen::Vector4f Point = currPose * Eigen::Vector4f(point.x,
+                                                                                    point.y,
+                                                                                    point.z,
+                                                                                       1.0f);
+                            Eigen::Vector3f PointIN(Point.x(), Point.y(), Point.z());
+
+                            //ReliablePoint->push_back(Point);
+                            //localDeformation.ReliablePoints->push_back(Point);
+                            localDeformation.addReliablePoint(PointIN);
+                        }    
+                    //std::cout<<(int)frameToModel.corres_maps[160*y + x]<<"\n\n\n\n";
                     //A.at<uchar>(y,x,1) = (uchar)frameToModel.corres_maps[160*y + x]*125;
                     }
                     //std::cout<<"A:"<<A.at<int>(cv::Point(x,y));
                     //std::cout<<(uint8_t)frameToModel.corres_map[160*y + x]*255<<",";
                 }
             }
+            //std::cout<<"size: "<<localDeformation.ReliablePoints->size()<<"\n";
+            //std::cout<<"size: "<<localDeformation.ReliablePoints->at(0)<<"\n";
+            //std::cout<<ReliablePoint[0]<<"\n";
             cv::namedWindow( "Reliability Map", cv::WINDOW_NORMAL);
             cv::imshow("Reliability Map", A);
             cv::waitKey(1);
@@ -600,11 +624,11 @@ void ElasticFusion::processFrame(const unsigned char * rgb,
 
             if(covOk && modelToModel.lastICPCount > icpCountThresh && modelToModel.lastICPError < icpErrThresh)
             {   
-                std::cout<<"covOK ModeltoModel ICP\n";
+                std::cout<<"covOK ModeltoModel ICP\n\n\n\n";
                 //Find correspondence
                 resize.vertex(indexMap.vertexTex(), consBuff);
                 resize.time(indexMap.oldTimeTex(), timesBuff);
-
+                //std::cout<<consBuff.cols<<"x"<<consBuff.rows<<"\n";
                 for(int i = 0; i < consBuff.cols; i++)
                 {
                     for(int j = 0; j < consBuff.rows; j++)
@@ -709,8 +733,9 @@ void ElasticFusion::processFrame(const unsigned char * rgb,
 
     TICK("sampleGraph");
 
+    //localDeformation.sampleGraphModelGoodPoints(globalModel.model());
+    //std::cout<<ReliablePoint;
     localDeformation.sampleGraphModel(globalModel.model());
-
     globalDeformation.sampleGraphFrom(localDeformation);
 
     TOCK("sampleGraph");
@@ -724,6 +749,8 @@ void ElasticFusion::processFrame(const unsigned char * rgb,
     }
 
     TOCK("Run");
+
+    delete ReliablePoint;
 }
 
 void ElasticFusion::processFerns()
